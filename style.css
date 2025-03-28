@@ -1,21 +1,45 @@
 :root[data-theme="light"] {
-    --bg-color: #f0f0f0;
-    --text-color: #333;
-    --panel-bg: #fff;
-    --panel-shadow-primary: rgba(0,0,0,0.2);
-    --panel-shadow-secondary: rgba(0,0,0,0.1);
-    --border-color: #999;
-    --input-border: #ccc;
+    --bg-color: #f9fafb;
+    --text-color: #111827;
+    --panel-bg: #ffffff;
+    --panel-shadow-primary: rgba(0,0,0,0.08);
+    --panel-shadow-secondary: rgba(0,0,0,0.05);
+    --border-color: #e5e7eb;
+    --input-border: #d1d5db;
+    --input-bg: #ffffff;
+    --input-hover-border: #9ca3af;
+    --input-focus-ring: rgba(59, 130, 246, 0.3);
+    --btn-primary-bg: #2563eb;
+    --btn-primary-hover: #1d4ed8;
+    --btn-secondary-bg: #6b7280;
+    --btn-secondary-hover: #4b5563;
+    --btn-success-bg: #10b981;
+    --btn-success-hover: #059669;
+    --ring-color: rgba(59, 130, 246, 0.4);
 }
 
 :root[data-theme="dark"] {
-    --bg-color: #222;
-    --text-color: #f0f0f0;
-    --panel-bg: #333;
-    --panel-shadow-primary: rgba(0,0,0,0.4);
-    --panel-shadow-secondary: rgba(0,0,0,0.3);
-    --border-color: #555;
-    --input-border: #444;
+    --bg-color: #111827;
+    --text-color: #f9fafb;
+    --panel-bg: #1f2937;
+    --panel-shadow-primary: rgba(0,0,0,0.25);
+    --panel-shadow-secondary: rgba(0,0,0,0.15);
+    --border-color: #374151;
+    --input-border: #4b5563;
+    --input-bg: #1f2937;
+    --input-hover-border: #6b7280;
+    --input-focus-ring: rgba(37, 99, 235, 0.3);
+    --btn-primary-bg: #3b82f6;
+    --btn-primary-hover: #2563eb;
+    --btn-secondary-bg: #4b5563;
+    --btn-secondary-hover: #374151;
+    --btn-success-bg: #10b981;
+    --btn-success-hover: #059669;
+    --ring-color: rgba(37, 99, 235, 0.4);
+}
+
+* {
+	box-sizing: border-box;	
 }
 
 body {
@@ -24,14 +48,14 @@ body {
     color: var(--text-color);
     display: flex;
     flex-direction: column;
-    font-family: sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     justify-content: center;
     margin: 0;
     min-height: 100vh;
     overflow: hidden; /* Prevent scrollbars */
     padding: 0;
     position: relative;
-    transition: background-color 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 h1 {
@@ -42,57 +66,202 @@ h1 {
 .controls {
 	align-items: flex-start;
     background-color: var(--panel-bg);
-    border-radius: 8px;
-    box-shadow: 0 8px 20px var(--panel-shadow-primary), 0 4px 8px var(--panel-shadow-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 4px 10px var(--panel-shadow-primary), 0 2px 4px var(--panel-shadow-secondary);
     color: var(--text-color);
     cursor: move;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    padding: 15px;
+    gap: 14px;
+    max-width: 320px;
+    padding: 18px;
     position: fixed;
     right: 65px;
     top: 65px;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
     z-index: 4;
 }
 
-.controls > div {
+.controls-header {
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    width: 100%;
+}
+
+.controls-header svg {
+    color: var(--btn-primary-bg);
+}
+
+.controls-header h3 {
+    color: var(--text-color);
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.separator {
+    border-top: 1px solid var(--border-color);
+    margin: 8px 0;
+    width: 100%;
+}
+
+.control-group {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+}
+
+.dimensions {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+}
+
+.dimension-input {
+    flex: 1;
+}
+
+.input-with-unit {
     align-items: center;
     display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    justify-content: center;
+    position: relative;
+}
+
+.input-with-unit .unit {
+    color: var(--input-hover-border);
+    font-size: 13px;
+    position: absolute;
+    right: 8px;
+}
+
+.slider-with-value {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+.controls *:not(input):not(button):not(select):not(:has(input, button, select)) {
+	pointer-events: none;
 }
 
 .controls label {
-    font-weight: bold;
-    margin: 0 5px;
-	pointer-events: none;
+    color: var(--text-color);
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0;
     white-space: nowrap;
 }
 
 .controls input[type="number"] {
-    background-color: var(--panel-bg);
+    background-color: var(--input-bg);
     border: 1px solid var(--input-border);
-    border-radius: 4px;
+    border-radius: 6px;
     color: var(--text-color);
-    padding: 5px;
+    font-size: 14px;
+    height: 36px;
+    outline: none;
+    padding: 0 8px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
     width: 60px;
 }
 
-.controls select {
-    background-color: var(--panel-bg);
-    border: 1px solid var(--input-border);
-    border-radius: 4px;
+.controls input[type="number"]:hover {
+    border-color: var(--input-hover-border);
+}
+
+.controls input[type="number"]:focus {
+    border-color: var(--btn-primary-bg);
+    box-shadow: 0 0 0 3px var(--input-focus-ring);
+}
+
+.controls input[type="file"] {
+    background-color: var(--input-bg);
+    border: 1px dashed var(--input-border);
+    border-radius: 6px;
     color: var(--text-color);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 8px;
+    transition: border-color 0.15s ease;
+    width: 100%;
+}
+
+.controls input[type="file"]:hover {
+    border-color: var(--input-hover-border);
+}
+
+.controls select {
+    appearance: none;
+    background-color: var(--input-bg);
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-position: right 10px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 14px;
+    height: 36px;
     min-width: 180px;
-    padding: 5px;
+    outline: none;
+    padding: 0 32px 0 12px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    width: 100%;
+}
+
+.controls select:hover {
+    border-color: var(--input-hover-border);
+}
+
+.controls select:focus {
+    border-color: var(--btn-primary-bg);
+    box-shadow: 0 0 0 3px var(--input-focus-ring);
 }
 
 .controls input[type="range"] {
+    -webkit-appearance: none;
+    background: transparent;
     cursor: pointer;
+    height: 6px;
+    margin: 8px 0;
     vertical-align: middle;
+    width: 100%;
+}
+
+.controls input[type="range"]::-webkit-slider-runnable-track {
+    background: var(--input-border);
+    border-radius: 3px;
+    height: 6px;
+    transition: background-color 0.15s ease;
+}
+
+.controls input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    background: var(--btn-primary-bg);
+    border: 2px solid var(--input-bg);
+    border-radius: 50%;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    height: 16px;
+    margin-top: -5px;
+    transition: all 0.15s ease;
+    width: 16px;
+}
+
+.controls input[type="range"]:focus {
+    outline: none;
+}
+
+.controls input[type="range"]:focus::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px var(--input-focus-ring);
 }
 
 .theme-toggle-container {
@@ -102,22 +271,29 @@ h1 {
 }
 
 #themeToggle {
-    background-color: transparent;
-    border: none;
+    align-items: center;
+    background-color: var(--panel-bg);
+    border: 1px solid var(--border-color);
     border-radius: 50%;
+    box-shadow: 0 2px 5px var(--panel-shadow-primary);
     cursor: pointer;
+    display: flex;
     height: 40px;
-    padding: 8px;
+    justify-content: center;
+    outline: none;
+    padding: 0;
     position: relative;
+    transition: all 0.2s ease;
     width: 40px;
 }
 
 #themeToggle:hover {
-    background-color: rgba(0, 0, 0, 0.1);
+    border-color: var(--input-hover-border);
+    transform: translateY(-1px);
 }
 
-:root[data-theme="dark"] #themeToggle:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+#themeToggle:focus {
+    box-shadow: 0 0 0 3px var(--ring-color);
 }
 
 .sun-icon, .moon-icon {
@@ -147,81 +323,127 @@ h1 {
 #imageScaleValue {
     display: inline-block;
     font-family: monospace;
+    font-size: 13px;
     margin-left: 5px;
-    min-width: 35px;
+    min-width: 40px;
     text-align: right;
+}
+
+.controls input[type="color"] {
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    cursor: pointer;
+    height: 36px;
+    outline: none;
+    padding: 4px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    width: 60px;
+}
+
+.controls input[type="color"]:hover {
+    border-color: var(--input-hover-border);
+}
+
+.controls input[type="color"]:focus {
+    border-color: var(--btn-primary-bg);
+    box-shadow: 0 0 0 3px var(--input-focus-ring);
 }
 
 .controls button,
 .controls a {
-    background-color: #007bff;
+    align-items: center;
+    background-color: var(--btn-primary-bg);
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     color: white;
     cursor: pointer;
-    display: inline-block;
-    padding: 8px 15px;
+    display: inline-flex;
+    font-size: 14px;
+    font-weight: 500;
+    height: 36px;
+    justify-content: center;
+    outline: none;
+    padding: 0 16px;
     text-decoration: none;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+    white-space: nowrap;
+}
+
+.controls button:hover,
+.controls a:hover {
+    background-color: var(--btn-primary-hover);
+}
+
+.controls button:focus,
+.controls a:focus {
+    box-shadow: 0 0 0 3px var(--ring-color);
 }
 
 #saveButton {
-    background-color: #28a745;
+    background-color: var(--btn-success-bg);
+    width: 100%;
 }
 
 #saveButton:hover {
-    background-color: #218838;
+    background-color: var(--btn-success-hover);
 }
 
 #fitWidthBtn, #fitHeightBtn {
-    background-color: #6c757d;
-    margin: 0 5px;
+    background-color: var(--btn-secondary-bg);
+    flex: 1;
 }
 
 #fitWidthBtn:hover, #fitHeightBtn:hover {
-    background-color: #5a6268;
+    background-color: var(--btn-secondary-hover);
 }
 
 .align-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 5px;
-    margin-top: 5px;
-    width: 100px;
+    gap: 4px;
+    margin-top: 4px;
+    width: 100%;
 }
 
 .align-btn {
-    background-color: #f8f9fa;
-    border: 1px solid #ccc;
+    align-items: center;
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
     border-radius: 4px;
-    color: #333;
+    color: var(--text-color);
     cursor: pointer;
-    font-size: 16px;
-    height: 30px;
+    display: flex;
+    font-size: 14px;
+    height: 32px;
+    justify-content: center;
     padding: 0;
-    width: 30px;
+    transition: all 0.15s ease;
+    width: 100%;
 }
 
 .align-btn:hover {
-    background-color: #e9ecef;
+    background-color: var(--input-hover-border);
+    border-color: var(--input-hover-border);
+}
+
+.align-btn:focus {
+    box-shadow: 0 0 0 2px var(--ring-color);
+    outline: none;
 }
 
 .align-btn.active {
-    background-color: #007bff;
-    border-color: #007bff;
+    background-color: var(--btn-primary-bg);
+    border-color: var(--btn-primary-bg);
     color: white;
 }
 
-.controls button:hover,
-.controls a:hover {
-    background-color: #0056b3;
-}
-
 .controls a {
-    background-color: #28a745;
+    background-color: var(--btn-success-bg);
 }
 
 .controls a:hover {
-    background-color: #218838;
+    background-color: var(--btn-success-hover);
 }
 
 .editor-area {
@@ -242,27 +464,33 @@ h1 {
 }
 
 .editor-area.drag-over {
-    background-color: rgba(0, 123, 255, 0.1);
-    border: 2px dashed #007bff;
-    border-radius: 8px;
+    background-color: rgba(59, 130, 246, 0.1);
+    border: 2px dashed var(--btn-primary-bg);
+    border-radius: 12px;
     outline: none;
 }
 
 .canvas-container {
+    align-items: center;
     display: flex;
     justify-content: center;
-    align-items: center;
     max-height: 80vh;
     max-width: 90vw;
     overflow: visible;
     position: relative;
     transform-origin: center;
-    transition: border-color 0.3s ease;
+    transition: all 0.2s ease;
     z-index: 2;
 }
 
 canvas {
+    background-color: var(--panel-bg);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px -5px var(--panel-shadow-primary), 
+                0 8px 10px -6px var(--panel-shadow-secondary);
     border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 8px;
 }
 
 /* Background blur now handled directly in canvas */

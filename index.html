@@ -18,12 +18,18 @@
         </button>
     </div>
     <div class="controls">
-        <div>
-            <label for="imageLoader">Upload Image:</label>
+        <div class="controls-header">
+            <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7.5 0.75C7.91421 0.75 8.25 1.08579 8.25 1.5C8.25 1.91421 7.91421 2.25 7.5 2.25C7.08579 2.25 6.75 1.91421 6.75 1.5C6.75 1.08579 7.08579 0.75 7.5 0.75ZM2.5 7.5C2.5 4.73858 4.73858 2.5 7.5 2.5C10.2614 2.5 12.5 4.73858 12.5 7.5C12.5 10.2614 10.2614 12.5 7.5 12.5C4.73858 12.5 2.5 10.2614 2.5 7.5ZM7.5 3.5C5.29086 3.5 3.5 5.29086 3.5 7.5C3.5 9.70914 5.29086 11.5 7.5 11.5C9.70914 11.5 11.5 9.70914 11.5 7.5C11.5 5.29086 9.70914 3.5 7.5 3.5ZM7.5 12.75C7.91421 12.75 8.25 13.0858 8.25 13.5C8.25 13.9142 7.91421 14.25 7.5 14.25C7.08579 14.25 6.75 13.9142 6.75 13.5C6.75 13.0858 7.08579 12.75 7.5 12.75ZM13.5 6.75C13.9142 6.75 14.25 7.08579 14.25 7.5C14.25 7.91421 13.9142 8.25 13.5 8.25C13.0858 8.25 12.75 7.91421 12.75 7.5C12.75 7.08579 13.0858 6.75 13.5 6.75ZM0.75 7.5C0.75 7.08579 1.08579 6.75 1.5 6.75C1.91421 6.75 2.25 7.08579 2.25 7.5C2.25 7.91421 1.91421 8.25 1.5 8.25C1.08579 8.25 0.75 7.91421 0.75 7.5ZM11.4645 2.78033C11.7571 2.48744 12.2319 2.48744 12.5248 2.78033C12.8177 3.07322 12.8177 3.54799 12.5248 3.84088L12.5238 3.84192L11.8645 4.49951L10.8066 3.4423L11.4645 2.78033ZM2.4729 11.82L3.13067 11.1643L4.18807 12.2216L3.53102 12.8787C3.23813 13.1716 2.76336 13.1716 2.47046 12.8787C2.17757 12.5858 2.17757 12.1111 2.47046 11.8182L2.4729 11.82Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+            </svg>
+            <h3>Image Controls</h3>
+        </div>
+        <div class="control-group">
+            <label for="imageLoader">Upload Image</label>
             <input type="file" id="imageLoader" name="imageLoader" accept="image/*"/>
         </div>
-        <div>
-             <label for="sizePreset">Preset Size:</label>
+        <div class="control-group">
+             <label for="sizePreset">Preset Size</label>
              <select id="sizePreset">
                 <option value="">-- Select Preset --</option>
                 <option value="aspect_16_9">16:9 Aspect Ratio</option>
@@ -33,43 +39,65 @@
                 <option value="separator" disabled>--- Phones (Approx Portrait) ---</option>
                 <option value="375x667">iPhone 6/7/8/SE</option>
                 <option value="414x896">iPhone XR/11</option>
-                <option value="390x844">iPhone 12/13/14 Pro</option>
+                <option value="390x844" selected>iPhone 12/13/14 Pro</option>
                 <option value="360x740">Samsung Galaxy S8/S9/S10e</option>
                 <option value="412x869">Samsung Galaxy S20+/S21+/Note</option>
                 <option value="393x851">Google Pixel 6/7</option>
              </select>
         </div>
-        <div>
-            <label for="canvasWidth">Canvas Width:</label>
-            <input type="number" id="canvasWidth" value="600" min="50"> px
-            <label for="canvasHeight">Canvas Height:</label>
-            <input type="number" id="canvasHeight" value="400" min="50"> px
+        <div class="control-group dimensions">
+            <div class="dimension-input">
+                <label for="canvasWidth">Width</label>
+                <div class="input-with-unit">
+                    <input type="number" id="canvasWidth" value="600" min="50">
+                    <span class="unit">px</span>
+                </div>
+            </div>
+            <div class="dimension-input">
+                <label for="canvasHeight">Height</label>
+                <div class="input-with-unit">
+                    <input type="number" id="canvasHeight" value="400" min="50">
+                    <span class="unit">px</span>
+                </div>
+            </div>
         </div>
-        <div>
+        <div class="control-group">
             <button id="fitWidthBtn">Fit Width</button>
             <button id="fitHeightBtn">Fit Height</button>
         </div>
-        <div>
-            <label for="blurAmount">Background Blur:</label>
-            <input type="range" id="blurAmount" min="0" max="50" value="15">
-            <span id="blurValue">15px</span>
+        
+        <div class="separator"></div>
+        
+        <div class="control-group">
+            <label for="blurAmount">Background Blur</label>
+            <div class="slider-with-value">
+                <input type="range" id="blurAmount" min="0" max="50" value="15">
+                <span id="blurValue">15px</span>
+            </div>
         </div>
-        <div>
-            <label for="blurScale">Background Scale:</label>
-            <input type="range" id="blurScale" min="100" max="200" value="100">
-            <span id="blurScaleValue">100%</span>
+        <div class="control-group">
+            <label for="blurScale">Background Scale</label>
+            <div class="slider-with-value">
+                <input type="range" id="blurScale" min="100" max="200" value="100">
+                <span id="blurScaleValue">100%</span>
+            </div>
         </div>
-        <div>
-            <label for="imageScale">Image Scale:</label>
-            <input type="range" id="imageScale" min="10" max="200" value="100">
-            <span id="imageScaleValue">100%</span>
+        <div class="control-group">
+            <label for="imageScale">Image Scale</label>
+            <div class="slider-with-value">
+                <input type="range" id="imageScale" min="10" max="200" value="100">
+                <span id="imageScaleValue">100%</span>
+            </div>
         </div>
-        <div>
-            <label for="bgColor">Background Color:</label>
+        <div class="control-group">
+            <label for="bgColor">Background Color</label>
             <input type="color" id="bgColor" value="#333333">
         </div>
-        <div>
-            <label>Image Alignment:</label>
+        
+        <div class="separator"></div>
+        
+        <div class="control-group">
+            <label>Image Alignment</label>
             <div class="align-grid">
                 <button class="align-btn" data-align="top-left" title="Top Left">↖</button>
                 <button class="align-btn" data-align="top" title="Top">↑</button>
@@ -82,7 +110,10 @@
                 <button class="align-btn" data-align="bottom-right" title="Bottom Right">↘</button>
             </div>
         </div>
-        <div>
+        
+        <div class="separator"></div>
+        
+        <div class="control-group">
             <button id="saveButton">Save Image</button>
         </div>
     </div>
