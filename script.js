@@ -419,6 +419,61 @@ function saveImage() {
 saveButton.addEventListener('click', saveImage);
 
 
+// --- Controls Dragging ---
+const controlsPanel = document.querySelector('.controls');
+let isDraggingControls = false;
+let controlsStartX, controlsStartY;
+let controlsInitialLeft, controlsInitialTop;
+
+controlsPanel.addEventListener('mousedown', (e) => {
+	// Ignore right clicks
+	if (e.button !== 0) return;
+	
+	// Only start drag on the control panel itself, not on its children
+	if (e.target === controlsPanel || e.target.tagName === 'DIV' && e.target.parentNode === controlsPanel) {
+		isDraggingControls = true;
+		controlsStartX = e.clientX;
+		controlsStartY = e.clientY;
+		
+		// Calculate position as left/top instead of right/top for easier positioning
+		const rect = controlsPanel.getBoundingClientRect();
+		controlsInitialLeft = window.innerWidth - rect.right;
+		controlsInitialTop = rect.top;
+		
+		// Prevent text selection during drag
+		e.preventDefault();
+	}
+});
+
+document.addEventListener('mousemove', (e) => {
+	if (isDraggingControls) {
+		const dx = e.clientX - controlsStartX;
+		const dy = e.clientY - controlsStartY;
+		
+		// Calculate new position
+		let newLeft = controlsInitialLeft - dx;
+		let newTop = controlsInitialTop + dy;
+		
+		// Get control panel dimensions
+		const rect = controlsPanel.getBoundingClientRect();
+		
+		// Constrain to window bounds
+		if (newLeft < 0) newLeft = 0;
+		if (newLeft > window.innerWidth - rect.width) newLeft = window.innerWidth - rect.width;
+		if (newTop < 0) newTop = 0;
+		if (newTop > window.innerHeight - rect.height) newTop = window.innerHeight - rect.height;
+		
+		// Apply the new position
+		controlsPanel.style.right = newLeft + 'px';
+		controlsPanel.style.left = 'auto';
+		controlsPanel.style.top = newTop + 'px';
+	}
+});
+
+document.addEventListener('mouseup', () => {
+	isDraggingControls = false;
+});
+
 // --- Initial Setup ---
 initializeCanvas();
 updateBlur();

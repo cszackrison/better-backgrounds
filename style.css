@@ -26,6 +26,7 @@ h1 {
 	right: 20px;
     gap: 10px;
 	z-index: 4;
+	cursor: move;
 }
 
 .controls > div {
