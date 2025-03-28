@@ -822,5 +822,35 @@ function initTheme() {
 }
 
 initTheme();
+
+// Apply the default selected preset dimensions on page load
+function applySelectedPreset() {
+	const selectedOption = sizePresetSelect.options[sizePresetSelect.selectedIndex];
+	const presetValue = selectedOption.value;
+	
+	if (presetValue && presetValue !== 'separator') {
+		let newWidth = parseInt(canvasWidthInput.value, 10);
+		let newHeight = parseInt(canvasHeightInput.value, 10);
+		
+		if (presetValue.startsWith('aspect_')) {
+			const parts = presetValue.split('_');
+			const ratioX = parseInt(parts[1], 10);
+			const ratioY = parseInt(parts[2], 10);
+			newHeight = Math.round(newWidth / (ratioX / ratioY));
+		} else {
+			const dims = presetValue.split('x');
+			newWidth = parseInt(dims[0], 10);
+			newHeight = parseInt(dims[1], 10);
+		}
+		
+		if (newWidth >= 50 && newHeight >= 50) {
+			canvasWidthInput.value = newWidth;
+			canvasHeightInput.value = newHeight;
+		}
+	}
+}
+
+// Apply selected preset before initializing canvas
+applySelectedPreset();
 initializeCanvas();
 draw();
