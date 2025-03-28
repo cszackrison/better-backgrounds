@@ -23,6 +23,8 @@ const blurAmountInput = document.getElementById('blurAmount');
 const blurValueSpan = document.getElementById('blurValue');
 const bgColorInput = document.getElementById('bgColor');
 const sizePresetSelect = document.getElementById('sizePreset');
+const fitWidthBtn = document.getElementById('fitWidthBtn');
+const fitHeightBtn = document.getElementById('fitHeightBtn');
 
 let currentImage = null;
 let imageX = 0, imageY = 0;
@@ -51,7 +53,19 @@ function initializeCanvas() {
         // Maintain current alignment when canvas size changes
         const activeBtn = document.querySelector('.align-btn.active');
         const position = activeBtn ? activeBtn.dataset.align : 'center';
-        alignImage(position);
+        
+        // When changing canvas size, maintain the current image scale
+        if (drawnWidth > 0 && drawnHeight > 0) {
+            // Keep scale as is - don't recalculate dimensions
+            // Just re-position the image based on alignment
+            const alignment = alignmentPositions[position] || alignmentPositions.center;
+            imageX = (canvas.width - drawnWidth) * alignment.x;
+            imageY = (canvas.height - drawnHeight) * alignment.y;
+            draw();
+        } else {
+            // First time loading, use regular alignment
+            alignImage(position);
+        }
     } else {
         draw();
     }
@@ -72,19 +86,22 @@ function alignImage(position = 'center') {
         }
     });
     
-    // Calculate image size while maintaining aspect ratio
-    const canvasAspect = canvas.width / canvas.height;
-    const imageAspect = currentImage.naturalWidth / currentImage.naturalHeight;
-    const margin = 0.9;
+    // If no scale has been set yet (first load), set a default scale
+    if (scale === 1 && drawnWidth === 0 && drawnHeight === 0) {
+        // Calculate image size while maintaining aspect ratio
+        const canvasAspect = canvas.width / canvas.height;
+        const imageAspect = currentImage.naturalWidth / currentImage.naturalHeight;
+        const margin = 0.9;
 
-    if (imageAspect > canvasAspect) {
-        drawnWidth = canvas.width * margin;
-        scale = drawnWidth / currentImage.naturalWidth;
-        drawnHeight = currentImage.naturalHeight * scale;
-    } else {
-        drawnHeight = canvas.height * margin;
-        scale = drawnHeight / currentImage.naturalHeight;
-        drawnWidth = currentImage.naturalWidth * scale;
+        if (imageAspect > canvasAspect) {
+            drawnWidth = canvas.width * margin;
+            scale = drawnWidth / currentImage.naturalWidth;
+            drawnHeight = currentImage.naturalHeight * scale;
+        } else {
+            drawnHeight = canvas.height * margin;
+            scale = drawnHeight / currentImage.naturalHeight;
+            drawnWidth = currentImage.naturalWidth * scale;
+        }
     }
     
     // Get position coordinates
@@ -505,6 +522,58 @@ document.querySelectorAll('.align-btn').forEach(button => {
         }
     });
 });
+
+// Fit width function - makes the image width 100% of canvas width
+function fitImageWidth() {
+	if (!currentImage) {
+		alert('Please upload an image first.');
+		return;
+	}
+	
+	// Calculate new dimensions based on canvas width
+	drawnWidth = canvas.width;
+	scale = drawnWidth / currentImage.naturalWidth;
+	drawnHeight = currentImage.naturalHeight * scale;
+	
+	// Center vertically
+	imageX = 0;
+	imageY = (canvas.height - drawnHeight) / 2;
+	
+	// Update the alignment button states
+	document.querySelectorAll('.align-btn').forEach(btn => {
+		btn.classList.remove('active');
+	});
+	
+	draw();
+}
+
+// Fit height function - makes the image height 100% of canvas height
+function fitImageHeight() {
+	if (!currentImage) {
+		alert('Please upload an image first.');
+		return;
+	}
+	
+	// Calculate new dimensions based on canvas height
+	drawnHeight = canvas.height;
+	scale = drawnHeight / currentImage.naturalHeight;
+	drawnWidth = currentImage.naturalWidth * scale;
+	
+	// Center horizontally
+	imageX = (canvas.width - drawnWidth) / 2;
+	imageY = 0;
+	
+	// Update the alignment button states
+	document.querySelectorAll('.align-btn').forEach(btn => {
+		btn.classList.remove('active');
+	});
+	
+	draw();
+}
+
+// Add event listeners for fit buttons
+fitWidthBtn.addEventListener('click', fitImageWidth);
+fitHeightBtn.addEventListener('click', fitImageHeight);
 
 // Mark center alignment as active by default
 const centerBtn = document.querySelector('.align-btn[data-align="center"]');

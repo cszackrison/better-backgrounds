@@ -90,6 +90,15 @@ h1 {
     background-color: #218838;
 }
 
+#fitWidthBtn, #fitHeightBtn {
+    background-color: #6c757d;
+    margin: 0 5px;
+}
+
+#fitWidthBtn:hover, #fitHeightBtn:hover {
+    background-color: #5a6268;
+}
+
 .align-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
