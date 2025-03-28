@@ -530,7 +530,7 @@ function saveImage() {
         const dataUrl = tempCanvas.toDataURL('image/png');
         const link = document.createElement('a');
         link.href = dataUrl;
-        link.download = 'canvas-image.png';
+        link.download = `${Date.now()}.png`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
