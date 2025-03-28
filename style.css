@@ -97,7 +97,7 @@ h1 {
 }
 
 .controls-header svg {
-    color: var(--btn-primary-bg);
+	overflow: visible;
 }
 
 .controls-header h3 {
@@ -172,7 +172,7 @@ h1 {
     outline: none;
     padding: 0 8px;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
-    width: 60px;
+    width: 106px;
 }
 
 .controls input[type="number"]:hover {
@@ -428,6 +428,10 @@ h1 {
     padding: 0;
     transition: all 0.15s ease;
     width: 100%;
+}
+
+.align-btn * {
+	pointer-events: none;
 }
 
 .align-btn:hover {
