@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +7,16 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="theme-toggle-container">
+        <button id="themeToggle" aria-label="Toggle dark mode">
+            <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 24 24">
+                <path d="M12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm9 4h-2c0 4.97-4.03 9-9 9v2c6.08 0 11-4.93 11-11zm-18 0H1c0 6.08 4.92 11 11 11v-2c-4.97 0-9-4.03-9-9zM23 12h-2c0-6.07-4.93-11-11-11v2c4.97 0 9 4.03 9 9zM12 1v2c-4.97 0-9 4.03-9 9H1c0-6.07 4.93-11 11-11z"/>
+            </svg>
+            <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 24 24">
+                <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/>
+            </svg>
+        </button>
+    </div>
     <div class="controls">
         <div>
             <label for="imageLoader">Upload Image:</label>
@@ -43,6 +53,16 @@
             <label for="blurAmount">Background Blur:</label>
             <input type="range" id="blurAmount" min="0" max="50" value="15">
             <span id="blurValue">15px</span>
+        </div>
+        <div>
+            <label for="blurScale">Background Scale:</label>
+            <input type="range" id="blurScale" min="100" max="200" value="100">
+            <span id="blurScaleValue">100%</span>
+        </div>
+        <div>
+            <label for="imageScale">Image Scale:</label>
+            <input type="range" id="imageScale" min="10" max="200" value="100">
+            <span id="imageScaleValue">100%</span>
         </div>
         <div>
             <label for="bgColor">Background Color:</label>

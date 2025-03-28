@@ -1,6 +1,25 @@
+:root[data-theme="light"] {
+    --bg-color: #f0f0f0;
+    --text-color: #333;
+    --panel-bg: #fff;
+    --panel-shadow: rgba(0,0,0,0.1);
+    --border-color: #999;
+    --input-border: #ccc;
+}
+
+:root[data-theme="dark"] {
+    --bg-color: #222;
+    --text-color: #f0f0f0;
+    --panel-bg: #333;
+    --panel-shadow: rgba(0,0,0,0.3);
+    --border-color: #555;
+    --input-border: #444;
+}
+
 body {
     align-items: center;
-    background-color: #f0f0f0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
     display: flex;
     flex-direction: column;
     font-family: sans-serif;
@@ -10,17 +29,19 @@ body {
     overflow: hidden; /* Prevent scrollbars */
     padding: 0;
     position: relative;
+    transition: background-color 0.3s ease;
 }
 
 h1 {
-    color: #333;
+    color: var(--text-color);
     margin-bottom: 20px;
 }
 
 .controls {
-    background-color: #fff;
+    background-color: var(--panel-bg);
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px var(--panel-shadow);
+    color: var(--text-color);
     cursor: move;
     display: flex;
     flex-direction: column;
@@ -29,6 +50,7 @@ h1 {
     position: fixed;
     right: 20px;
     top: 20px;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
     z-index: 4;
 }
 
@@ -43,19 +65,24 @@ h1 {
 .controls label {
     font-weight: bold;
     margin: 0 5px;
+	pointer-events: none;
     white-space: nowrap;
 }
 
 .controls input[type="number"] {
-    border: 1px solid #ccc;
+    background-color: var(--panel-bg);
+    border: 1px solid var(--input-border);
     border-radius: 4px;
+    color: var(--text-color);
     padding: 5px;
     width: 60px;
 }
 
 .controls select {
-    border: 1px solid #ccc;
+    background-color: var(--panel-bg);
+    border: 1px solid var(--input-border);
     border-radius: 4px;
+    color: var(--text-color);
     min-width: 180px;
     padding: 5px;
 }
@@ -65,7 +92,57 @@ h1 {
     vertical-align: middle;
 }
 
-#blurValue {
+.theme-toggle-container {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 5;
+}
+
+#themeToggle {
+    background-color: transparent;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    height: 40px;
+    padding: 8px;
+    position: relative;
+    width: 40px;
+}
+
+#themeToggle:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+:root[data-theme="dark"] #themeToggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sun-icon, .moon-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.3s ease, transform 0.5s ease;
+}
+
+.sun-icon path, .moon-icon path {
+    fill: var(--text-color);
+}
+
+:root[data-theme="light"] .moon-icon {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(90deg);
+}
+
+:root[data-theme="dark"] .sun-icon {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(-90deg);
+}
+
+#blurValue,
+#blurScaleValue,
+#imageScaleValue {
     display: inline-block;
     font-family: monospace;
     margin-left: 5px;
@@ -157,7 +234,7 @@ h1 {
     overflow: hidden;
     padding: 20px;
     position: absolute;
-    top: 45%; /* Shift slightly upward to account for controls */
+    top: 50%;
     transform: translate(-50%, -50%);
     width: auto;
 }
@@ -170,7 +247,7 @@ h1 {
 }
 
 .canvas-container {
-    border: 1px solid #999;
+    border: 1px solid var(--border-color);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -179,6 +256,7 @@ h1 {
     overflow: visible;
     position: relative;
     transform-origin: center;
+    transition: border-color 0.3s ease;
     z-index: 2;
 }
 

@@ -1,7 +1,14 @@
 const imageLoader = document.getElementById('imageLoader');
 const canvas = document.getElementById('imageCanvas');
 const ctx = canvas.getContext('2d');
+const themeToggle = document.getElementById('themeToggle');
 // Background blur now handled directly in canvas
+
+// Scale controls
+const imageScaleInput = document.getElementById('imageScale');
+const imageScaleValueSpan = document.getElementById('imageScaleValue');
+const blurScaleInput = document.getElementById('blurScale');
+const blurScaleValueSpan = document.getElementById('blurScaleValue');
 
 // Image alignment positions
 const alignmentPositions = {
@@ -30,6 +37,7 @@ let currentImage = null;
 let imageX = 0, imageY = 0;
 let drawnWidth = 0, drawnHeight = 0;
 let scale = 1;
+let backgroundScale = 1;
 let currentImageSrc = null;
 
 let isDragging = false, isResizing = false;
@@ -105,6 +113,15 @@ function alignImage(position = 'center') {
             scale = drawnHeight / currentImage.naturalHeight;
             drawnWidth = currentImage.naturalWidth * scale;
         }
+        
+        // Update image scale slider to reflect initial scale
+        const scalePercent = Math.round(scale * 100);
+        const clampedScale = Math.max(
+            parseInt(imageScaleInput.min),
+            Math.min(parseInt(imageScaleInput.max), scalePercent)
+        );
+        imageScaleInput.value = clampedScale;
+        imageScaleValueSpan.textContent = `${clampedScale}%`;
     }
     
     // Get position coordinates
@@ -139,6 +156,10 @@ function draw() {
                 bgWidth = canvas.width;
                 bgHeight = bgWidth / imgAspect;
             }
+            
+            // Apply background scale
+            bgWidth *= backgroundScale;
+            bgHeight *= backgroundScale;
 
             const drawnCenterX = imageX + drawnWidth / 2;
             const drawnCenterY = imageY + drawnHeight / 2;
@@ -206,6 +227,13 @@ imageLoader.addEventListener('change', (event) => {
         img.onload = () => { 
             currentImage = img; 
             
+            // Reset scale controls to default values
+            imageScaleInput.value = 100;
+            imageScaleValueSpan.textContent = '100%';
+            blurScaleInput.value = 100;
+            blurScaleValueSpan.textContent = '100%';
+            backgroundScale = 1;
+            
             // Get the active alignment or default to center
             const activeBtn = document.querySelector('.align-btn.active');
             const position = activeBtn ? activeBtn.dataset.align : 'center';
@@ -228,7 +256,44 @@ function updateBlurValue() {
     draw(); // Redraw with new blur value
 }
 
+function updateBlurScale() {
+    const value = blurScaleInput.value;
+    backgroundScale = value / 100;
+    blurScaleValueSpan.textContent = `${value}%`;
+    draw(); // Redraw with new background scale
+}
+
+function updateImageScale() {
+    if (!currentImage) return;
+    
+    const value = imageScaleInput.value;
+    const newScale = value / 100;
+    const scaleRatio = newScale / scale;
+    
+    // Calculate new dimensions while maintaining aspect ratio
+    const newWidth = drawnWidth * scaleRatio;
+    const newHeight = drawnHeight * scaleRatio;
+    
+    // Calculate position adjustment to maintain center point
+    const centerX = imageX + drawnWidth / 2;
+    const centerY = imageY + drawnHeight / 2;
+    
+    // Update dimensions
+    drawnWidth = newWidth;
+    drawnHeight = newHeight;
+    scale = newScale;
+    
+    // Recalculate position to maintain center point
+    imageX = centerX - drawnWidth / 2;
+    imageY = centerY - drawnHeight / 2;
+    
+    imageScaleValueSpan.textContent = `${value}%`;
+    draw();
+}
+
 blurAmountInput.addEventListener('input', updateBlurValue);
+blurScaleInput.addEventListener('input', updateBlurScale);
+imageScaleInput.addEventListener('input', updateImageScale);
 bgColorInput.addEventListener('input', draw); // Redraw when background color changes
 
 sizePresetSelect.addEventListener('change', (event) => {
@@ -370,6 +435,16 @@ canvas.addEventListener('mousemove', (e) => {
         drawnWidth = Math.max(handleSize, drawnWidth);
         drawnHeight = Math.max(handleSize, drawnHeight);
         scale = drawnWidth / currentImage.naturalWidth;
+        
+        // Update image scale control to match the current scale
+        const scalePercent = Math.round(scale * 100);
+        // Clamp scale percentage to slider min/max values
+        const clampedScale = Math.max(
+            parseInt(imageScaleInput.min), 
+            Math.min(parseInt(imageScaleInput.max), scalePercent)
+        );
+        imageScaleInput.value = clampedScale;
+        imageScaleValueSpan.textContent = `${clampedScale}%`;
 
         draw();
     } else if (isDragging) {
@@ -422,6 +497,10 @@ function saveImage() {
                     bgWidth = tempCanvas.width;
                     bgHeight = bgWidth / imgAspect;
                 }
+                
+                // Apply background scale
+                bgWidth *= backgroundScale;
+                bgHeight *= backgroundScale;
     
                 const drawnCenterX = imageX + drawnWidth / 2;
                 const drawnCenterY = imageY + drawnHeight / 2;
@@ -547,6 +626,15 @@ function fitImageWidth() {
 		btn.classList.remove('active');
 	});
 	
+	// Update image scale slider
+	const scalePercent = Math.round(scale * 100);
+	const clampedScale = Math.max(
+		parseInt(imageScaleInput.min),
+		Math.min(parseInt(imageScaleInput.max), scalePercent)
+	);
+	imageScaleInput.value = clampedScale;
+	imageScaleValueSpan.textContent = `${clampedScale}%`;
+	
 	draw();
 }
 
@@ -570,6 +658,15 @@ function fitImageHeight() {
 	document.querySelectorAll('.align-btn').forEach(btn => {
 		btn.classList.remove('active');
 	});
+	
+	// Update image scale slider
+	const scalePercent = Math.round(scale * 100);
+	const clampedScale = Math.max(
+		parseInt(imageScaleInput.min),
+		Math.min(parseInt(imageScaleInput.max), scalePercent)
+	);
+	imageScaleInput.value = clampedScale;
+	imageScaleValueSpan.textContent = `${clampedScale}%`;
 	
 	draw();
 }
@@ -654,6 +751,13 @@ editorArea.addEventListener('drop', (e) => {
 				img.onload = () => { 
 					currentImage = img; 
 					
+					// Reset scale controls to default values
+					imageScaleInput.value = 100;
+					imageScaleValueSpan.textContent = '100%';
+					blurScaleInput.value = 100;
+					blurScaleValueSpan.textContent = '100%';
+					backgroundScale = 1;
+					
 					// Get the active alignment or default to center
 					const activeBtn = document.querySelector('.align-btn.active');
 					const position = activeBtn ? activeBtn.dataset.align : 'center';
@@ -670,5 +774,35 @@ editorArea.addEventListener('drop', (e) => {
 	}
 });
 
+// Initialize the scale controls
+imageScaleValueSpan.textContent = '100%';
+blurScaleValueSpan.textContent = '100%';
+
+// Theme toggle functionality
+function toggleTheme() {
+	const html = document.documentElement;
+	const currentTheme = html.getAttribute('data-theme');
+	const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+	
+	html.setAttribute('data-theme', newTheme);
+	
+	// Optional: save theme preference to localStorage
+	localStorage.setItem('theme', newTheme);
+}
+
+themeToggle.addEventListener('click', toggleTheme);
+
+// Check for saved theme preference
+function initTheme() {
+	const savedTheme = localStorage.getItem('theme');
+	if (savedTheme) {
+		document.documentElement.setAttribute('data-theme', savedTheme);
+	} else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+		// If no saved preference, use system preference
+		document.documentElement.setAttribute('data-theme', 'dark');
+	}
+}
+
+initTheme();
 initializeCanvas();
 draw();
