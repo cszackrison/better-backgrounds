@@ -1,13 +1,27 @@
 const imageLoader = document.getElementById('imageLoader');
 const canvas = document.getElementById('imageCanvas');
 const ctx = canvas.getContext('2d');
-const backgroundBlur = document.getElementById('background-blur');
+// Background blur now handled directly in canvas
+
+// Image alignment positions
+const alignmentPositions = {
+	'top-left': { x: 0, y: 0 },
+	'top': { x: 0.5, y: 0 },
+	'top-right': { x: 1, y: 0 },
+	'left': { x: 0, y: 0.5 },
+	'center': { x: 0.5, y: 0.5 },
+	'right': { x: 1, y: 0.5 },
+	'bottom-left': { x: 0, y: 1 },
+	'bottom': { x: 0.5, y: 1 },
+	'bottom-right': { x: 1, y: 1 }
+};
 const canvasWidthInput = document.getElementById('canvasWidth');
 const canvasHeightInput = document.getElementById('canvasHeight');
 const saveButton = document.getElementById('saveButton');
 const canvasContainer = document.querySelector('.canvas-container');
 const blurAmountInput = document.getElementById('blurAmount');
 const blurValueSpan = document.getElementById('blurValue');
+const bgColorInput = document.getElementById('bgColor');
 const sizePresetSelect = document.getElementById('sizePreset');
 
 let currentImage = null;
@@ -27,8 +41,6 @@ const snapThreshold = 10;
 function initializeCanvas() {
     const width = parseInt(canvasWidthInput.value, 10);
     const height = parseInt(canvasHeightInput.value, 10);
-    const oldWidth = canvas.width;
-    const oldHeight = canvas.height;
 
     canvas.width = width;
     canvas.height = height;
@@ -36,14 +48,31 @@ function initializeCanvas() {
     canvasContainer.style.height = `${height}px`;
 
     if (currentImage) {
-        imageX += (width - oldWidth) / 2;
-        imageY += (height - oldHeight) / 2;
+        // Maintain current alignment when canvas size changes
+        const activeBtn = document.querySelector('.align-btn.active');
+        const position = activeBtn ? activeBtn.dataset.align : 'center';
+        alignImage(position);
+    } else {
+        draw();
     }
-    draw();
 }
 
 function centerImage() {
+    alignImage('center');
+}
+
+function alignImage(position = 'center') {
     if (!currentImage) return;
+    
+    // Update active button
+    document.querySelectorAll('.align-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.align === position) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Calculate image size while maintaining aspect ratio
     const canvasAspect = canvas.width / canvas.height;
     const imageAspect = currentImage.naturalWidth / currentImage.naturalHeight;
     const margin = 0.9;
@@ -57,41 +86,65 @@ function centerImage() {
         scale = drawnHeight / currentImage.naturalHeight;
         drawnWidth = currentImage.naturalWidth * scale;
     }
-    imageX = (canvas.width - drawnWidth) / 2;
-    imageY = (canvas.height - drawnHeight) / 2;
+    
+    // Get position coordinates
+    const alignment = alignmentPositions[position] || alignmentPositions.center;
+    
+    // Calculate position based on alignment
+    imageX = (canvas.width - drawnWidth) * alignment.x;
+    imageY = (canvas.height - drawnHeight) * alignment.y;
+    
+    draw();
 }
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw background color
+    ctx.fillStyle = bgColorInput.value;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     if (currentImage && currentImageSrc) {
-        if (backgroundBlur.style.backgroundImage !== `url("${currentImageSrc}")`) {
-             backgroundBlur.style.backgroundImage = `url("${currentImageSrc}")`;
+        // Draw background with blur
+        const blurValue = blurAmountInput.value;
+        if (blurValue > 0) {
+            const imgAspect = currentImage.naturalWidth / currentImage.naturalHeight;
+            const canvasAspect = canvas.width / canvas.height;
+            let bgWidth, bgHeight;
+
+            if (imgAspect > canvasAspect) {
+                bgHeight = canvas.height;
+                bgWidth = bgHeight * imgAspect;
+            } else {
+                bgWidth = canvas.width;
+                bgHeight = bgWidth / imgAspect;
+            }
+
+            const drawnCenterX = imageX + drawnWidth / 2;
+            const drawnCenterY = imageY + drawnHeight / 2;
+            let normX = drawnCenterX / canvas.width;
+            let normY = drawnCenterY / canvas.height;
+            normX = Math.max(0, Math.min(1, normX));
+            normY = Math.max(0, Math.min(1, normY));
+
+            const bgX = (canvas.width - bgWidth) * normX;
+            const bgY = (canvas.height - bgHeight) * normY;
+
+            // Apply blur effect
+            ctx.filter = `blur(${blurValue}px)`;
+            ctx.drawImage(
+                currentImage,
+                bgX, bgY,
+                bgWidth, bgHeight
+            );
+            ctx.filter = 'none';
         }
 
-        backgroundBlur.style.backgroundRepeat = 'no-repeat';
-        backgroundBlur.style.backgroundSize = 'cover';
-
-        const drawnCenterX = imageX + drawnWidth / 2;
-        const drawnCenterY = imageY + drawnHeight / 2;
-
-        let normX = drawnCenterX / canvas.width;
-        let normY = drawnCenterY / canvas.height;
-
-        normX = Math.max(0, Math.min(1, normX));
-        normY = Math.max(0, Math.min(1, normY));
-
-        backgroundBlur.style.backgroundPosition = `${normX * 100}% ${normY * 100}%`;
-
-        updateBlur();
-
+        // Draw foreground image
         ctx.drawImage(currentImage, Math.round(imageX), Math.round(imageY), Math.round(drawnWidth), Math.round(drawnHeight));
         drawHandles();
 
     } else {
-        backgroundBlur.style.backgroundImage = 'none';
-        backgroundBlur.style.backgroundPosition = 'center center';
-        backgroundBlur.style.backgroundSize = 'cover';
         ctx.fillStyle = "#999";
         ctx.textAlign = "center";
         ctx.font = "16px sans-serif";
@@ -130,7 +183,14 @@ imageLoader.addEventListener('change', (event) => {
     reader.onload = (e) => {
         currentImageSrc = e.target.result;
         const img = new Image();
-        img.onload = () => { currentImage = img; centerImage(); draw(); };
+        img.onload = () => { 
+            currentImage = img; 
+            
+            // Get the active alignment or default to center
+            const activeBtn = document.querySelector('.align-btn.active');
+            const position = activeBtn ? activeBtn.dataset.align : 'center';
+            alignImage(position);
+        };
         img.onerror = () => { alert('Failed to load image.'); currentImage = null; currentImageSrc = null; draw(); }
         img.src = currentImageSrc;
     };
@@ -142,13 +202,14 @@ imageLoader.addEventListener('change', (event) => {
 canvasWidthInput.addEventListener('change', () => { sizePresetSelect.value = ""; initializeCanvas(); });
 canvasHeightInput.addEventListener('change', () => { sizePresetSelect.value = ""; initializeCanvas(); });
 
-function updateBlur() {
+function updateBlurValue() {
     const value = blurAmountInput.value;
-    backgroundBlur.style.filter = `blur(${value}px)`;
     blurValueSpan.textContent = `${value}px`;
+    draw(); // Redraw with new blur value
 }
 
-blurAmountInput.addEventListener('input', updateBlur);
+blurAmountInput.addEventListener('input', updateBlurValue);
+bgColorInput.addEventListener('input', draw); // Redraw when background color changes
 
 sizePresetSelect.addEventListener('change', (event) => {
     const value = event.target.value; if (!value || value === 'separator') return;
@@ -285,63 +346,58 @@ function saveImage() {
         return;
     }
 
-    const tempCanvas = document.createElement('canvas');
-    const tempCtx = tempCanvas.getContext('2d');
-    tempCanvas.width = canvas.width;
-    tempCanvas.height = canvas.height;
-
     try {
-        const blurValue = blurAmountInput.value;
-        if (blurValue > 0) {
-            const imgAspect = currentImage.naturalWidth / currentImage.naturalHeight;
-            const canvasAspect = tempCanvas.width / tempCanvas.height;
-            let bgWidth, bgHeight;
-
-            if (imgAspect > canvasAspect) {
-                bgHeight = tempCanvas.height;
-                bgWidth = bgHeight * imgAspect;
-            } else {
-                bgWidth = tempCanvas.width;
-                bgHeight = bgWidth / imgAspect;
+        // Create a temporary canvas without resize handles
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+        
+        // Draw background color
+        tempCtx.fillStyle = bgColorInput.value;
+        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        
+        // Draw background with blur if applicable
+        if (currentImage && currentImageSrc) {
+            const blurValue = blurAmountInput.value;
+            if (blurValue > 0) {
+                const imgAspect = currentImage.naturalWidth / currentImage.naturalHeight;
+                const canvasAspect = tempCanvas.width / tempCanvas.height;
+                let bgWidth, bgHeight;
+    
+                if (imgAspect > canvasAspect) {
+                    bgHeight = tempCanvas.height;
+                    bgWidth = bgHeight * imgAspect;
+                } else {
+                    bgWidth = tempCanvas.width;
+                    bgHeight = bgWidth / imgAspect;
+                }
+    
+                const drawnCenterX = imageX + drawnWidth / 2;
+                const drawnCenterY = imageY + drawnHeight / 2;
+                let normX = drawnCenterX / canvas.width;
+                let normY = drawnCenterY / canvas.height;
+                normX = Math.max(0, Math.min(1, normX));
+                normY = Math.max(0, Math.min(1, normY));
+    
+                const bgX = (tempCanvas.width - bgWidth) * normX;
+                const bgY = (tempCanvas.height - bgHeight) * normY;
+    
+                // Apply blur effect
+                tempCtx.filter = `blur(${blurValue}px)`;
+                tempCtx.drawImage(
+                    currentImage,
+                    bgX, bgY,
+                    bgWidth, bgHeight
+                );
+                tempCtx.filter = 'none';
             }
-
-            const drawnCenterX = imageX + drawnWidth / 2;
-            const drawnCenterY = imageY + drawnHeight / 2;
-            let normX = drawnCenterX / canvas.width;
-            let normY = drawnCenterY / canvas.height;
-            normX = Math.max(0, Math.min(1, normX));
-            normY = Math.max(0, Math.min(1, normY));
-
-            const bgX = (tempCanvas.width - bgWidth) * normX;
-            const bgY = (tempCanvas.height - bgHeight) * normY;
-
-            tempCtx.filter = `blur(${blurValue}px)`;
-
-            tempCtx.drawImage(
-                currentImage,
-                bgX, bgY,
-                bgWidth, bgHeight
-            );
-
-            tempCtx.filter = 'none';
+    
+            // Draw foreground image without handles
+            tempCtx.drawImage(currentImage, Math.round(imageX), Math.round(imageY), Math.round(drawnWidth), Math.round(drawnHeight));
         }
-
-        const sourceX = -imageX / scale;
-        const sourceY = -imageY / scale;
-        const sourceWidth = canvas.width / scale;
-        const sourceHeight = canvas.height / scale;
-
-        const destX = 0;
-        const destY = 0;
-        const destWidth = tempCanvas.width;
-        const destHeight = tempCanvas.height;
-
-        tempCtx.drawImage(
-            currentImage,
-            sourceX, sourceY, sourceWidth, sourceHeight,
-            destX, destY, destWidth, destHeight
-        );
-
+        
+        // Create download link
         const dataUrl = tempCanvas.toDataURL('image/png');
         const link = document.createElement('a');
         link.href = dataUrl;
@@ -408,6 +464,21 @@ document.addEventListener('mouseup', () => {
 	isDraggingControls = false;
 });
 
+// Add event listeners for alignment buttons
+document.querySelectorAll('.align-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+        const alignPosition = e.target.dataset.align;
+        if (alignPosition && currentImage) {
+            alignImage(alignPosition);
+        } else if (!currentImage) {
+            alert('Please upload an image first.');
+        }
+    });
+});
+
+// Mark center alignment as active by default
+const centerBtn = document.querySelector('.align-btn[data-align="center"]');
+if (centerBtn) centerBtn.classList.add('active');
+
 initializeCanvas();
-updateBlur();
 draw();

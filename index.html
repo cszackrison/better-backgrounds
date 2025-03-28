@@ -41,13 +41,30 @@
             <span id="blurValue">15px</span>
         </div>
         <div>
+            <label for="bgColor">Background Color:</label>
+            <input type="color" id="bgColor" value="#333333">
+        </div>
+        <div>
+            <label>Image Alignment:</label>
+            <div class="align-grid">
+                <button class="align-btn" data-align="top-left" title="Top Left">↖</button>
+                <button class="align-btn" data-align="top" title="Top">↑</button>
+                <button class="align-btn" data-align="top-right" title="Top Right">↗</button>
+                <button class="align-btn" data-align="left" title="Left">←</button>
+                <button class="align-btn" data-align="center" title="Center">⦿</button>
+                <button class="align-btn" data-align="right" title="Right">→</button>
+                <button class="align-btn" data-align="bottom-left" title="Bottom Left">↙</button>
+                <button class="align-btn" data-align="bottom" title="Bottom">↓</button>
+                <button class="align-btn" data-align="bottom-right" title="Bottom Right">↘</button>
+            </div>
+        </div>
+        <div>
             <button id="saveButton">Save Image</button>
         </div>
     </div>
 
     <div class="editor-area">
         <div class="canvas-container">
-            <div id="background-blur"></div>
             <canvas id="imageCanvas"></canvas>
         </div>
     </div>
