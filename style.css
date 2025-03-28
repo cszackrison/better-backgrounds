@@ -3,7 +3,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
+    padding: 0;
     background-color: #f0f0f0; /* Use a neutral editor background */
     min-height: 100vh;
     margin: 0;
@@ -19,10 +19,13 @@ h1 {
     padding: 15px;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
     display: flex;
     flex-direction: column;
+	position: fixed;
+	top: 20px;
+	right: 20px;
     gap: 10px;
+	z-index: 4;
 }
 
 .controls > div {
@@ -121,24 +124,18 @@ h1 {
 
 .editor-area {
     position: relative;
-    width: 90%;
-    max-width: 1200px;
-    margin: 20px auto; /* Give space around */
-    flex-grow: 1;
+    margin: auto; /* Give space around */
     display: flex;
     justify-content: center;
     align-items: center;
-    /* background-color: #ddd; /* Optional: Different editor area bg */
-    overflow: hidden; /* Ensure nothing spills out */
-    padding: 20px; /* Space around the canvas container */
+	width: 100%;
 }
 
 
 .canvas-container {
     position: relative; /* Now the positioning context for background and canvas */
     border: 1px solid #999; /* Subtle border */
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    overflow: hidden; /* Crucial: clips both background and canvas content */
+    overflow: visible; /* Crucial: clips both background and canvas content */
     z-index: 2;
     /* width/height set by JS */
     /* No background color here - background div handles it */
