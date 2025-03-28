@@ -223,7 +223,37 @@ function getMousePos(event) { const rect = canvas.getBoundingClientRect(); retur
 
 function getHandleUnderMouse(pos) { if (!currentImage) return null; const handles = getHandlePositions(); const tolerance = handleSize * 1.5; for (const corner in handles) { const handlePos = handles[corner]; if ( pos.x >= handlePos.x - tolerance / 2 && pos.x <= handlePos.x + tolerance / 2 && pos.y >= handlePos.y - tolerance / 2 && pos.y <= handlePos.y + tolerance / 2 ) { return corner; } } return null; }
 
-canvas.addEventListener('mousedown', (e) => { if (!currentImage) return; const mousePos = getMousePos(e); activeHandle = getHandleUnderMouse(mousePos); if (activeHandle) { isResizing = true; isDragging = false; canvas.style.cursor = (activeHandle === 'tl' || activeHandle === 'br') ? 'nwse-resize' : 'nesw-resize'; resizeStartX = mousePos.x; resizeStartY = mousePos.y; initialImageX = imageX; initialImageY = imageY; initialDrawnWidth = drawnWidth; initialDrawnHeight = drawnHeight; } else { if (mousePos.x >= imageX && mousePos.x <= imageX + drawnWidth && mousePos.y >= imageY && mousePos.y <= imageY + drawnHeight) { isDragging = true; isResizing = false; startX = mousePos.x - imageX; startY = mousePos.y - imageY; canvas.classList.add('grabbing'); canvas.style.cursor = 'grabbing'; } } });
+canvas.addEventListener('mousedown', (e) => { 
+	const mousePos = getMousePos(e); 
+	
+	if (!currentImage) {
+		// If no image is loaded, clicking on canvas opens the file upload dialog
+		imageLoader.click();
+		return;
+	}
+	
+	activeHandle = getHandleUnderMouse(mousePos); 
+	if (activeHandle) { 
+		isResizing = true; 
+		isDragging = false; 
+		canvas.style.cursor = (activeHandle === 'tl' || activeHandle === 'br') ? 'nwse-resize' : 'nesw-resize'; 
+		resizeStartX = mousePos.x; 
+		resizeStartY = mousePos.y; 
+		initialImageX = imageX; 
+		initialImageY = imageY; 
+		initialDrawnWidth = drawnWidth; 
+		initialDrawnHeight = drawnHeight; 
+	} else { 
+		if (mousePos.x >= imageX && mousePos.x <= imageX + drawnWidth && mousePos.y >= imageY && mousePos.y <= imageY + drawnHeight) { 
+			isDragging = true; 
+			isResizing = false; 
+			startX = mousePos.x - imageX; 
+			startY = mousePos.y - imageY; 
+			canvas.classList.add('grabbing'); 
+			canvas.style.cursor = 'grabbing'; 
+		} 
+	} 
+});
 
 canvas.addEventListener('mousemove', (e) => {
     if (!currentImage) return;
@@ -479,6 +509,53 @@ document.querySelectorAll('.align-btn').forEach(button => {
 // Mark center alignment as active by default
 const centerBtn = document.querySelector('.align-btn[data-align="center"]');
 if (centerBtn) centerBtn.classList.add('active');
+
+// Drag and drop functionality
+const editorArea = document.querySelector('.editor-area');
+
+editorArea.addEventListener('dragover', (e) => {
+	e.preventDefault();
+	e.stopPropagation();
+	editorArea.classList.add('drag-over');
+});
+
+editorArea.addEventListener('dragleave', (e) => {
+	e.preventDefault();
+	e.stopPropagation();
+	editorArea.classList.remove('drag-over');
+});
+
+editorArea.addEventListener('drop', (e) => {
+	e.preventDefault();
+	e.stopPropagation();
+	editorArea.classList.remove('drag-over');
+	
+	const files = e.dataTransfer.files;
+	if (files.length > 0) {
+		const file = files[0];
+		if (file.type.startsWith('image/')) {
+			const reader = new FileReader();
+			reader.onload = (e) => {
+				currentImageSrc = e.target.result;
+				const img = new Image();
+				img.onload = () => { 
+					currentImage = img; 
+					
+					// Get the active alignment or default to center
+					const activeBtn = document.querySelector('.align-btn.active');
+					const position = activeBtn ? activeBtn.dataset.align : 'center';
+					alignImage(position);
+				};
+				img.onerror = () => { alert('Failed to load image.'); currentImage = null; currentImageSrc = null; draw(); }
+				img.src = currentImageSrc;
+			};
+			reader.onerror = () => { alert('Failed to read file.'); currentImage = null; currentImageSrc = null; draw(); }
+			reader.readAsDataURL(file);
+		} else {
+			alert('Please drop an image file.');
+		}
+	}
+});
 
 initializeCanvas();
 draw();
