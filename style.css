@@ -577,24 +577,3 @@ canvas {
 #imageCanvas.resize-nesw {
     cursor: nesw-resize;
 }
-
-/* Responsive styles for mobile devices */
-@media (max-width: 768px) {
-    .controls {
-        max-width: 280px;
-        right: 15px;
-        top: 60px;
-    }
-    
-    /* Make sure controls panel is initially positioned properly on mobile */
-    .controls.collapsed {
-        max-height: 40px;
-        overflow: hidden;
-    }
-    
-    /* Make sure toggle controls button is easy to tap on mobile */
-    .toggle-controls {
-        height: 30px;
-        width: 30px;
-    }
-}
