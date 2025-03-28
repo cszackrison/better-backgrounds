@@ -609,13 +609,8 @@ function handleDragMove(e) {
 		let newLeft = controlsInitialLeft - dx;
 		let newTop = controlsInitialTop + dy;
 		
-		const rect = controlsPanel.getBoundingClientRect();
-		
-		// Ensure the panel stays within viewport bounds
-		if (newLeft < 0) newLeft = 0;
-		if (newLeft > window.innerWidth - rect.width) newLeft = window.innerWidth - rect.width;
-		if (newTop < 0) newTop = 0;
-		if (newTop > window.innerHeight - rect.height) newTop = window.innerHeight - rect.height;
+		// Remove constraints that keep the panel inside viewport bounds
+		// This allows the panel to be positioned outside the window
 		
 		controlsPanel.style.right = newLeft + 'px';
 		controlsPanel.style.left = 'auto';
@@ -625,6 +620,7 @@ function handleDragMove(e) {
 
 function handleDragEnd() {
 	isDraggingControls = false;
+	saveControlsPosition();
 }
 
 // Mouse events
@@ -876,7 +872,39 @@ function initControlsState() {
 	if (savedState === 'true') {
 		document.querySelector('.controls').classList.add('collapsed');
 	}
+	
+	// Load saved panel position if available
+	const savedPosRight = localStorage.getItem('controlsPosRight');
+	const savedPosTop = localStorage.getItem('controlsPosTop');
+	
+	if (savedPosRight && savedPosTop) {
+		controlsPanel.style.right = savedPosRight;
+		controlsPanel.style.top = savedPosTop;
+	}
 }
+
+// Reset controls panel to default position
+function resetControlsPosition() {
+	controlsPanel.style.right = '65px';
+	controlsPanel.style.top = '65px';
+	
+	// Clear saved position from localStorage
+	localStorage.removeItem('controlsPosRight');
+	localStorage.removeItem('controlsPosTop');
+}
+
+// Save controls position when dragging ends
+function saveControlsPosition() {
+	const right = controlsPanel.style.right;
+	const top = controlsPanel.style.top;
+	
+	localStorage.setItem('controlsPosRight', right);
+	localStorage.setItem('controlsPosTop', top);
+}
+
+// Add event listener for the reset button
+const resetControlsBtn = document.getElementById('resetControlsPos');
+resetControlsBtn.addEventListener('click', resetControlsPosition);
 
 initControlsState();
 
