@@ -1,0 +1,178 @@
+body {
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background-color: #f0f0f0; /* Use a neutral editor background */
+    min-height: 100vh;
+    margin: 0;
+}
+
+h1 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.controls {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.controls > div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 5px; /* Spacing within a row */
+}
+
+
+.controls label {
+    margin: 0 5px 0 5px; /* Adjusted margins */
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.controls input[type="number"] {
+    width: 60px;
+    padding: 5px;
+    /* margin-right: 5px; */ /* Use gap */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.controls select {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    min-width: 180px; /* Give dropdown some width */
+}
+
+
+.controls input[type="range"] {
+    cursor: pointer;
+    vertical-align: middle;
+}
+#blurValue {
+    display: inline-block;
+    min-width: 35px;
+    text-align: right;
+    font-family: monospace;
+    margin-left: 5px;
+}
+
+
+.controls button,
+.controls a { /* Keep styling consistent if <a> was used */
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+/* Style Save button specifically if needed */
+#saveButton {
+    background-color: #28a745; /* Green for save */
+}
+#saveButton:hover {
+    background-color: #218838;
+}
+
+/* ... (editor-area, canvas-container styles remain) ... */
+
+#background-blur {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* background-size set by JS */
+    /* background-position set by JS */
+    background-repeat: no-repeat; /* Ensure no tiling */
+    /* filter set by JS */
+    z-index: 1;
+    pointer-events: none;
+    /* background image set by JS */
+}
+
+.controls button:hover,
+.controls a:hover {
+    background-color: #0056b3;
+}
+
+.controls a {
+     background-color: #28a745;
+}
+.controls a:hover {
+     background-color: #218838;
+}
+
+
+.editor-area {
+    position: relative;
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto; /* Give space around */
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* background-color: #ddd; /* Optional: Different editor area bg */
+    overflow: hidden; /* Ensure nothing spills out */
+    padding: 20px; /* Space around the canvas container */
+}
+
+
+.canvas-container {
+    position: relative; /* Now the positioning context for background and canvas */
+    border: 1px solid #999; /* Subtle border */
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    overflow: hidden; /* Crucial: clips both background and canvas content */
+    z-index: 2;
+    /* width/height set by JS */
+    /* No background color here - background div handles it */
+}
+
+#background-blur {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%; /* Takes size of parent (.canvas-container) */
+    height: 100%; /* Takes size of parent (.canvas-container) */
+    background-size: cover; /* Default, might be overridden by JS */
+    background-position: center center; /* Default, might be overridden by JS */
+    /* filter set by JS */
+    z-index: 1; /* Behind the canvas */
+    pointer-events: none; /* Prevent interfering with canvas interaction */
+    /* No transform needed here */
+    /* background image set by JS */
+}
+
+
+#imageCanvas {
+    display: block;
+    position: relative; /* To ensure it's above the background */
+    z-index: 2; /* Above the background */
+    cursor: grab;
+     /* Width/Height set by JS */
+     /* Make canvas transparent so background shows through empty areas */
+     /* background-color: transparent; */ /* Default */
+}
+
+#imageCanvas.grabbing {
+    cursor: grabbing;
+}
+
+#imageCanvas.resize-nwse { cursor: nwse-resize; }
+#imageCanvas.resize-nesw { cursor: nesw-resize; }
