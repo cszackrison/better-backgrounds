@@ -69,6 +69,9 @@ function initializeCanvas() {
     } else {
         draw();
     }
+    
+    // Update responsive scaling when canvas dimensions change
+    scaleCanvasContainer();
 }
 
 function centerImage() {
@@ -578,6 +581,47 @@ fitHeightBtn.addEventListener('click', fitImageHeight);
 // Mark center alignment as active by default
 const centerBtn = document.querySelector('.align-btn[data-align="center"]');
 if (centerBtn) centerBtn.classList.add('active');
+
+// Responsive canvas scaling
+function scaleCanvasContainer() {
+	const maxViewportWidth = window.innerWidth * 0.85;
+	const maxViewportHeight = window.innerHeight * 0.75;
+	
+	const currentWidth = parseInt(canvasWidthInput.value, 10);
+	const currentHeight = parseInt(canvasHeightInput.value, 10);
+	
+	let scale = 1;
+	
+	// If the canvas is wider than the viewport
+	if (currentWidth > maxViewportWidth) {
+		scale = Math.min(scale, maxViewportWidth / currentWidth);
+	}
+	
+	// If the canvas is taller than the viewport
+	if (currentHeight > maxViewportHeight) {
+		scale = Math.min(scale, maxViewportHeight / currentHeight);
+	}
+	
+	// Apply the scale and center the canvas
+	if (scale < 1) {
+		// Calculate the size after scaling to set margins
+		const scaledWidth = currentWidth * scale;
+		const scaledHeight = currentHeight * scale;
+		
+		// Set transform and center it
+		canvasContainer.style.transform = `scale(${scale})`;
+		
+		// Adjust margins to center it (accounting for the scale origin)
+		canvasContainer.style.margin = `${(currentHeight - scaledHeight) / 2}px ${(currentWidth - scaledWidth) / 2}px`;
+	} else {
+		canvasContainer.style.transform = 'none';
+		canvasContainer.style.margin = '0';
+	}
+}
+
+// Initial scaling and add resize event listener
+scaleCanvasContainer();
+window.addEventListener('resize', scaleCanvasContainer);
 
 // Drag and drop functionality
 const editorArea = document.querySelector('.editor-area');
