@@ -1,113 +1,93 @@
 body {
-    font-family: sans-serif;
+    align-items: center;
+    background-color: #f0f0f0;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding: 0;
-    background-color: #f0f0f0; /* Use a neutral editor background */
-    min-height: 100vh;
+    font-family: sans-serif;
     margin: 0;
+    min-height: 100vh;
+    padding: 0;
 }
 
 h1 {
-    margin-bottom: 20px;
     color: #333;
+    margin-bottom: 20px;
 }
 
 .controls {
     background-color: #fff;
-    padding: 15px;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    cursor: move;
     display: flex;
     flex-direction: column;
-	position: fixed;
-	top: 20px;
-	right: 20px;
     gap: 10px;
-	z-index: 4;
-	cursor: move;
+    padding: 15px;
+    position: fixed;
+    right: 20px;
+    top: 20px;
+    z-index: 4;
 }
 
 .controls > div {
-    display: flex;
     align-items: center;
-    justify-content: center;
+    display: flex;
     flex-wrap: wrap;
-    gap: 5px; /* Spacing within a row */
+    gap: 5px;
+    justify-content: center;
 }
 
-
 .controls label {
-    margin: 0 5px 0 5px; /* Adjusted margins */
     font-weight: bold;
+    margin: 0 5px;
     white-space: nowrap;
 }
 
 .controls input[type="number"] {
-    width: 60px;
-    padding: 5px;
-    /* margin-right: 5px; */ /* Use gap */
     border: 1px solid #ccc;
     border-radius: 4px;
+    padding: 5px;
+    width: 60px;
 }
 
 .controls select {
-    padding: 5px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    min-width: 180px; /* Give dropdown some width */
+    min-width: 180px;
+    padding: 5px;
 }
-
 
 .controls input[type="range"] {
     cursor: pointer;
     vertical-align: middle;
 }
+
 #blurValue {
     display: inline-block;
-    min-width: 35px;
-    text-align: right;
     font-family: monospace;
     margin-left: 5px;
+    min-width: 35px;
+    text-align: right;
 }
-
 
 .controls button,
-.controls a { /* Keep styling consistent if <a> was used */
-    padding: 8px 15px;
+.controls a {
+    background-color: #007bff;
     border: none;
     border-radius: 4px;
-    background-color: #007bff;
     color: white;
     cursor: pointer;
-    text-decoration: none;
     display: inline-block;
+    padding: 8px 15px;
+    text-decoration: none;
 }
 
-/* Style Save button specifically if needed */
 #saveButton {
-    background-color: #28a745; /* Green for save */
+    background-color: #28a745;
 }
+
 #saveButton:hover {
     background-color: #218838;
-}
-
-/* ... (editor-area, canvas-container styles remain) ... */
-
-#background-blur {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    /* background-size set by JS */
-    /* background-position set by JS */
-    background-repeat: no-repeat; /* Ensure no tiling */
-    /* filter set by JS */
-    z-index: 1;
-    pointer-events: none;
-    /* background image set by JS */
 }
 
 .controls button:hover,
@@ -116,61 +96,57 @@ h1 {
 }
 
 .controls a {
-     background-color: #28a745;
-}
-.controls a:hover {
-     background-color: #218838;
+    background-color: #28a745;
 }
 
+.controls a:hover {
+    background-color: #218838;
+}
 
 .editor-area {
-    position: relative;
-    margin: auto; /* Give space around */
+    align-items: center;
     display: flex;
     justify-content: center;
-    align-items: center;
-	width: 100%;
+    margin: auto;
+    position: relative;
+    width: 100%;
 }
 
-
 .canvas-container {
-    position: relative; /* Now the positioning context for background and canvas */
-    border: 1px solid #999; /* Subtle border */
-    overflow: visible; /* Crucial: clips both background and canvas content */
+    border: 1px solid #999;
+    overflow: visible;
+    position: relative;
     z-index: 2;
-    /* width/height set by JS */
-    /* No background color here - background div handles it */
 }
 
 #background-blur {
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    height: 100%;
+    left: 0;
+    pointer-events: none;
     position: absolute;
     top: 0;
-    left: 0;
-    width: 100%; /* Takes size of parent (.canvas-container) */
-    height: 100%; /* Takes size of parent (.canvas-container) */
-    background-size: cover; /* Default, might be overridden by JS */
-    background-position: center center; /* Default, might be overridden by JS */
-    /* filter set by JS */
-    z-index: 1; /* Behind the canvas */
-    pointer-events: none; /* Prevent interfering with canvas interaction */
-    /* No transform needed here */
-    /* background image set by JS */
+    width: 100%;
+    z-index: 1;
 }
 
-
 #imageCanvas {
-    display: block;
-    position: relative; /* To ensure it's above the background */
-    z-index: 2; /* Above the background */
     cursor: grab;
-     /* Width/Height set by JS */
-     /* Make canvas transparent so background shows through empty areas */
-     /* background-color: transparent; */ /* Default */
+    display: block;
+    position: relative;
+    z-index: 2;
 }
 
 #imageCanvas.grabbing {
     cursor: grabbing;
 }
 
-#imageCanvas.resize-nwse { cursor: nwse-resize; }
-#imageCanvas.resize-nesw { cursor: nesw-resize; }
+#imageCanvas.resize-nwse {
+    cursor: nwse-resize;
+}
+
+#imageCanvas.resize-nesw {
+    cursor: nesw-resize;
+}

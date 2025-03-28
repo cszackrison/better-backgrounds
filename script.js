@@ -22,14 +22,11 @@ const handleSize = 10;
 let startX, startY, resizeStartX, resizeStartY;
 let initialImageX, initialImageY, initialDrawnWidth, initialDrawnHeight;
 
-const snapThreshold = 10; // Pixels for snapping threshold
+const snapThreshold = 10;
 
-// --- Initialization & Resizing ---
-// (initializeCanvas, centerImage remain the same)
 function initializeCanvas() {
     const width = parseInt(canvasWidthInput.value, 10);
     const height = parseInt(canvasHeightInput.value, 10);
-    // Store old dimensions before changing
     const oldWidth = canvas.width;
     const oldHeight = canvas.height;
 
@@ -39,7 +36,6 @@ function initializeCanvas() {
     canvasContainer.style.height = `${height}px`;
 
     if (currentImage) {
-        // Adjust position to keep image center relatively stable
         imageX += (width - oldWidth) / 2;
         imageY += (height - oldHeight) / 2;
     }
@@ -65,9 +61,6 @@ function centerImage() {
     imageY = (canvas.height - drawnHeight) / 2;
 }
 
-
-// --- Drawing ---
-
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -76,35 +69,26 @@ function draw() {
              backgroundBlur.style.backgroundImage = `url("${currentImageSrc}")`;
         }
 
-        // --- Refined Background Logic ---
         backgroundBlur.style.backgroundRepeat = 'no-repeat';
-        backgroundBlur.style.backgroundSize = 'cover'; // Still use cover
+        backgroundBlur.style.backgroundSize = 'cover';
 
-        // Calculate the center of the *entire drawn image* relative to the canvas
         const drawnCenterX = imageX + drawnWidth / 2;
         const drawnCenterY = imageY + drawnHeight / 2;
 
-        // Convert this canvas center point to a normalized position relative to the *canvas dimensions*
-        // This percentage determines where the background image's center should align within the container
         let normX = drawnCenterX / canvas.width;
         let normY = drawnCenterY / canvas.height;
 
-        // Keep normalization between 0 and 1 for percentage positioning
         normX = Math.max(0, Math.min(1, normX));
         normY = Math.max(0, Math.min(1, normY));
 
-        // Set the background position using percentages. 'cover' will handle scaling.
         backgroundBlur.style.backgroundPosition = `${normX * 100}% ${normY * 100}%`;
-        // --- End Refined Background Logic ---
 
         updateBlur();
 
-        // Draw main image
         ctx.drawImage(currentImage, Math.round(imageX), Math.round(imageY), Math.round(drawnWidth), Math.round(drawnHeight));
         drawHandles();
 
     } else {
-        // No image - clear background and draw placeholder
         backgroundBlur.style.backgroundImage = 'none';
         backgroundBlur.style.backgroundPosition = 'center center';
         backgroundBlur.style.backgroundSize = 'cover';
@@ -115,8 +99,7 @@ function draw() {
     }
 }
 
-// (drawHandles, getHandlePositions remain the same)
-function drawHandles() { /* ... same ... */
+function drawHandles() {
     if (!currentImage) return;
     const halfHandle = handleSize / 2;
     ctx.fillStyle = 'rgba(0, 123, 255, 0.8)';
@@ -131,7 +114,8 @@ function drawHandles() { /* ... same ... */
         ctx.strokeRect(drawX - halfHandle, drawY - halfHandle, handleSize, handleSize);
     }
 }
-function getHandlePositions() { /* ... same ... */
+
+function getHandlePositions() {
     const x = Math.round(imageX);
     const y = Math.round(imageY);
     const w = Math.round(drawnWidth);
@@ -139,10 +123,7 @@ function getHandlePositions() { /* ... same ... */
     return { tl: { x: x, y: y }, tr: { x: x + w, y: y }, bl: { x: x, y: y + h }, br: { x: x + w, y: y + h } };
 }
 
-
-// --- Image Loading ---
-// (imageLoader listener remains the same)
-imageLoader.addEventListener('change', (event) => { /* ... same ... */
+imageLoader.addEventListener('change', (event) => {
     const file = event.target.files[0];
     if (!file || !file.type.startsWith('image/')) { alert('Please select a valid image file.'); event.target.value = null; return; }
     const reader = new FileReader();
@@ -158,18 +139,18 @@ imageLoader.addEventListener('change', (event) => { /* ... same ... */
     event.target.value = null;
 });
 
-
-// --- Controls Listeners ---
-// (Canvas inputs, Blur slider, Size preset listeners remain the same)
 canvasWidthInput.addEventListener('change', () => { sizePresetSelect.value = ""; initializeCanvas(); });
 canvasHeightInput.addEventListener('change', () => { sizePresetSelect.value = ""; initializeCanvas(); });
-function updateBlur() { /* ... same ... */
+
+function updateBlur() {
     const value = blurAmountInput.value;
     backgroundBlur.style.filter = `blur(${value}px)`;
     blurValueSpan.textContent = `${value}px`;
 }
+
 blurAmountInput.addEventListener('input', updateBlur);
-sizePresetSelect.addEventListener('change', (event) => { /* ... same ... */
+
+sizePresetSelect.addEventListener('change', (event) => {
     const value = event.target.value; if (!value || value === 'separator') return;
     let newWidth = parseInt(canvasWidthInput.value, 10), newHeight = parseInt(canvasHeightInput.value, 10);
     if (value.startsWith('aspect_')) { const parts = value.split('_'), ratioX = parseInt(parts[1], 10), ratioY = parseInt(parts[2], 10); newHeight = Math.round(newWidth / (ratioX / ratioY));
@@ -177,24 +158,21 @@ sizePresetSelect.addEventListener('change', (event) => { /* ... same ... */
     if (newWidth >= 50 && newHeight >= 50) { canvasWidthInput.value = newWidth; canvasHeightInput.value = newHeight; initializeCanvas(); } else { console.warn("Preset resulted in invalid dimensions."); event.target.value = ""; }
 });
 
+function getMousePos(event) { const rect = canvas.getBoundingClientRect(); return { x: event.clientX - rect.left, y: event.clientY - rect.top }; }
 
-// --- Mouse Interaction (Panning and Resizing) ---
-// (getMousePos, getHandleUnderMouse, mousedown remain the same)
-function getMousePos(event) { /* ... same ... */ const rect = canvas.getBoundingClientRect(); return { x: event.clientX - rect.left, y: event.clientY - rect.top }; }
-function getHandleUnderMouse(pos) { /* ... same ... */ if (!currentImage) return null; const handles = getHandlePositions(); const tolerance = handleSize * 1.5; for (const corner in handles) { const handlePos = handles[corner]; if ( pos.x >= handlePos.x - tolerance / 2 && pos.x <= handlePos.x + tolerance / 2 && pos.y >= handlePos.y - tolerance / 2 && pos.y <= handlePos.y + tolerance / 2 ) { return corner; } } return null; }
-canvas.addEventListener('mousedown', (e) => { /* ... same ... */ if (!currentImage) return; const mousePos = getMousePos(e); activeHandle = getHandleUnderMouse(mousePos); if (activeHandle) { isResizing = true; isDragging = false; canvas.style.cursor = (activeHandle === 'tl' || activeHandle === 'br') ? 'nwse-resize' : 'nesw-resize'; resizeStartX = mousePos.x; resizeStartY = mousePos.y; initialImageX = imageX; initialImageY = imageY; initialDrawnWidth = drawnWidth; initialDrawnHeight = drawnHeight; } else { if (mousePos.x >= imageX && mousePos.x <= imageX + drawnWidth && mousePos.y >= imageY && mousePos.y <= imageY + drawnHeight) { isDragging = true; isResizing = false; startX = mousePos.x - imageX; startY = mousePos.y - imageY; canvas.classList.add('grabbing'); canvas.style.cursor = 'grabbing'; } } });
+function getHandleUnderMouse(pos) { if (!currentImage) return null; const handles = getHandlePositions(); const tolerance = handleSize * 1.5; for (const corner in handles) { const handlePos = handles[corner]; if ( pos.x >= handlePos.x - tolerance / 2 && pos.x <= handlePos.x + tolerance / 2 && pos.y >= handlePos.y - tolerance / 2 && pos.y <= handlePos.y + tolerance / 2 ) { return corner; } } return null; }
+
+canvas.addEventListener('mousedown', (e) => { if (!currentImage) return; const mousePos = getMousePos(e); activeHandle = getHandleUnderMouse(mousePos); if (activeHandle) { isResizing = true; isDragging = false; canvas.style.cursor = (activeHandle === 'tl' || activeHandle === 'br') ? 'nwse-resize' : 'nesw-resize'; resizeStartX = mousePos.x; resizeStartY = mousePos.y; initialImageX = imageX; initialImageY = imageY; initialDrawnWidth = drawnWidth; initialDrawnHeight = drawnHeight; } else { if (mousePos.x >= imageX && mousePos.x <= imageX + drawnWidth && mousePos.y >= imageY && mousePos.y <= imageY + drawnHeight) { isDragging = true; isResizing = false; startX = mousePos.x - imageX; startY = mousePos.y - imageY; canvas.classList.add('grabbing'); canvas.style.cursor = 'grabbing'; } } });
 
 canvas.addEventListener('mousemove', (e) => {
     if (!currentImage) return;
     const mousePos = getMousePos(e);
 
     if (isResizing && activeHandle) {
-        // --- Resizing Logic with Non-Restricting Snapping ---
         const dx = mousePos.x - resizeStartX;
         const dy = mousePos.y - resizeStartY;
         const aspect = currentImage.naturalWidth / currentImage.naturalHeight;
 
-        // 1. Calculate raw new dimensions based on mouse delta
         let rawWidth = initialDrawnWidth;
         let rawHeight = initialDrawnHeight;
         let rawX = initialImageX;
@@ -207,68 +185,65 @@ canvas.addEventListener('mousemove', (e) => {
              case 'tl': rawWidth = Math.max(handleSize, initialDrawnWidth - dx); rawHeight = rawWidth / aspect; rawX = initialImageX + (initialDrawnWidth - rawWidth); rawY = initialImageY + (initialDrawnHeight - rawHeight); break;
         }
 
-        // 2. Determine potential snapped position/dimensions
         let snappedX = rawX, snappedY = rawY, snappedWidth = rawWidth, snappedHeight = rawHeight;
         let didSnap = false;
 
-        // Check edges based on the handle being dragged
-        if (activeHandle === 'tl' || activeHandle === 'bl') { // Left edge moving
+        if (activeHandle === 'tl' || activeHandle === 'bl') {
             if (Math.abs(rawX) < snapThreshold) {
                 snappedX = 0;
-                snappedWidth = initialDrawnWidth + initialImageX; // Width determined by fixed right edge
+                snappedWidth = initialDrawnWidth + initialImageX;
                 snappedHeight = snappedWidth / aspect;
-                 if (activeHandle === 'tl') { // Need to adjust Y for top handle
+                if (activeHandle === 'tl') {
                     snappedY = initialImageY + initialDrawnHeight - snappedHeight;
-                } else { // Bottom handle fixed Y
-                    snappedY = initialImageY; // Or recalculate based on fixed bottom? Keep initial for now.
-                }
-                didSnap = true;
-            }
-        }
-         if (activeHandle === 'tr' || activeHandle === 'br') { // Right edge moving
-             if (Math.abs((rawX + rawWidth) - canvas.width) < snapThreshold) {
-                 snappedWidth = canvas.width - rawX; // Width determined by canvas edge and current X
-                 snappedHeight = snappedWidth / aspect;
-                 snappedX = rawX; // X doesn't change here
-                 if (activeHandle === 'tr') { // Adjust Y for top handle
-                    snappedY = initialImageY + initialDrawnHeight - snappedHeight;
-                 } else { // Bottom handle fixed Y
+                } else {
                     snappedY = initialImageY;
-                 }
-                 didSnap = true;
-             }
-         }
-        if (activeHandle === 'tl' || activeHandle === 'tr') { // Top edge moving
-            if (Math.abs(rawY) < snapThreshold && !didSnap) { // Avoid double-snapping one axis yet
-                snappedY = 0;
-                snappedHeight = initialDrawnHeight + initialImageY; // Height determined by fixed bottom
-                snappedWidth = snappedHeight * aspect;
-                if (activeHandle === 'tl') { // Adjust X for left handle
-                    snappedX = initialImageX + initialDrawnWidth - snappedWidth;
-                } else { // Right handle fixed X
-                    snappedX = initialImageX;
                 }
                 didSnap = true;
             }
         }
-        if (activeHandle === 'bl' || activeHandle === 'br') { // Bottom edge moving
-            if (Math.abs((rawY + rawHeight) - canvas.height) < snapThreshold && !didSnap) {
-                snappedHeight = canvas.height - rawY; // Height determined by canvas edge and current Y
+
+        if (activeHandle === 'tr' || activeHandle === 'br') {
+            if (Math.abs((rawX + rawWidth) - canvas.width) < snapThreshold) {
+                snappedWidth = canvas.width - rawX;
+                snappedHeight = snappedWidth / aspect;
+                snappedX = rawX;
+                if (activeHandle === 'tr') {
+                    snappedY = initialImageY + initialDrawnHeight - snappedHeight;
+                } else {
+                    snappedY = initialImageY;
+                }
+                didSnap = true;
+            }
+        }
+
+        if (activeHandle === 'tl' || activeHandle === 'tr') {
+            if (Math.abs(rawY) < snapThreshold && !didSnap) {
+                snappedY = 0;
+                snappedHeight = initialDrawnHeight + initialImageY;
                 snappedWidth = snappedHeight * aspect;
-                snappedY = rawY; // Y doesn't change
-                if (activeHandle === 'bl') { // Adjust X for left handle
+                if (activeHandle === 'tl') {
                     snappedX = initialImageX + initialDrawnWidth - snappedWidth;
-                } else { // Right handle fixed X
+                } else {
                     snappedX = initialImageX;
                 }
                 didSnap = true;
             }
         }
 
-        // 3. Decide whether to use snapped or raw values
-        // This simple version just applies snap if detected. To allow moving past,
-        // we'd need to compare mouse position to the *snapped* handle position.
-        // For now, let's just use the snap if close. User can always nudge it away.
+        if (activeHandle === 'bl' || activeHandle === 'br') {
+            if (Math.abs((rawY + rawHeight) - canvas.height) < snapThreshold && !didSnap) {
+                snappedHeight = canvas.height - rawY;
+                snappedWidth = snappedHeight * aspect;
+                snappedY = rawY;
+                if (activeHandle === 'bl') {
+                    snappedX = initialImageX + initialDrawnWidth - snappedWidth;
+                } else {
+                    snappedX = initialImageX;
+                }
+                didSnap = true;
+            }
+        }
+
         if (didSnap) {
             imageX = snappedX;
             imageY = snappedY;
@@ -281,18 +256,12 @@ canvas.addEventListener('mousemove', (e) => {
             drawnHeight = rawHeight;
         }
 
-        // Ensure minimum size
-         drawnWidth = Math.max(handleSize, drawnWidth);
-         drawnHeight = Math.max(handleSize, drawnHeight);
-         // Recalculate scale
-         scale = drawnWidth / currentImage.naturalWidth;
-
+        drawnWidth = Math.max(handleSize, drawnWidth);
+        drawnHeight = Math.max(handleSize, drawnHeight);
+        scale = drawnWidth / currentImage.naturalWidth;
 
         draw();
-        // --- End Resizing Logic ---
-
     } else if (isDragging) {
-        // --- Dragging Logic with Snapping (Same as before) ---
         let targetX = mousePos.x - startX;
         let targetY = mousePos.y - startY;
         if (Math.abs(targetX) < snapThreshold) targetX = 0;
@@ -301,19 +270,14 @@ canvas.addEventListener('mousemove', (e) => {
         if (Math.abs((targetY + drawnHeight) - canvas.height) < snapThreshold) targetY = canvas.height - drawnHeight;
         imageX = targetX; imageY = targetY;
         draw();
-        // --- End Dragging Logic ---
-
-    } else { // Hovering: Update cursor (same as before)
-         const handle = getHandleUnderMouse(mousePos); if (handle) { canvas.style.cursor = (handle === 'tl' || handle === 'br') ? 'nwse-resize' : 'nesw-resize'; } else if (mousePos.x >= imageX && mousePos.x <= imageX + drawnWidth && mousePos.y >= imageY && mousePos.y <= imageY + drawnHeight) { canvas.style.cursor = 'grab'; } else { canvas.style.cursor = 'default'; }
+    } else {
+        const handle = getHandleUnderMouse(mousePos); if (handle) { canvas.style.cursor = (handle === 'tl' || handle === 'br') ? 'nwse-resize' : 'nesw-resize'; } else if (mousePos.x >= imageX && mousePos.x <= imageX + drawnWidth && mousePos.y >= imageY && mousePos.y <= imageY + drawnHeight) { canvas.style.cursor = 'grab'; } else { canvas.style.cursor = 'default'; }
     }
 });
 
-// (mouseup, mouseleave listeners remain the same)
-canvas.addEventListener('mouseup', (e) => { /* ... same ... */ if (isDragging || isResizing) { isDragging = false; isResizing = false; activeHandle = null; canvas.classList.remove('grabbing'); const currentMousePos = getMousePos(e); const hoverHandle = getHandleUnderMouse(currentMousePos); if (hoverHandle) { canvas.style.cursor = (hoverHandle === 'tl' || hoverHandle === 'br') ? 'nwse-resize' : 'nesw-resize'; } else if (currentMousePos.x >= imageX && currentMousePos.x <= imageX + drawnWidth && currentMousePos.y >= imageY && currentMousePos.y <= imageY + drawnHeight) { canvas.style.cursor = 'grab'; } else { canvas.style.cursor = 'default'; } } });
-canvas.addEventListener('mouseleave', () => { /* ... same ... */ if (isDragging || isResizing) { isDragging = false; isResizing = false; activeHandle = null; canvas.classList.remove('grabbing'); } canvas.style.cursor = 'default'; });
+canvas.addEventListener('mouseup', (e) => { if (isDragging || isResizing) { isDragging = false; isResizing = false; activeHandle = null; canvas.classList.remove('grabbing'); const currentMousePos = getMousePos(e); const hoverHandle = getHandleUnderMouse(currentMousePos); if (hoverHandle) { canvas.style.cursor = (hoverHandle === 'tl' || hoverHandle === 'br') ? 'nwse-resize' : 'nesw-resize'; } else if (currentMousePos.x >= imageX && currentMousePos.x <= imageX + drawnWidth && currentMousePos.y >= imageY && currentMousePos.y <= imageY + drawnHeight) { canvas.style.cursor = 'grab'; } else { canvas.style.cursor = 'default'; } } });
 
-
-// --- Saving ---
+canvas.addEventListener('mouseleave', () => { if (isDragging || isResizing) { isDragging = false; isResizing = false; activeHandle = null; canvas.classList.remove('grabbing'); } canvas.style.cursor = 'default'; });
 
 function saveImage() {
     if (!currentImage) {
@@ -321,30 +285,26 @@ function saveImage() {
         return;
     }
 
-    // Create a temporary canvas sized to the final output (viewport size)
     const tempCanvas = document.createElement('canvas');
     const tempCtx = tempCanvas.getContext('2d');
     tempCanvas.width = canvas.width;
     tempCanvas.height = canvas.height;
 
     try {
-        // --- 1. Draw the Blurred Background ---
         const blurValue = blurAmountInput.value;
         if (blurValue > 0) {
-            // Calculate scale factor for 'cover'
             const imgAspect = currentImage.naturalWidth / currentImage.naturalHeight;
             const canvasAspect = tempCanvas.width / tempCanvas.height;
             let bgWidth, bgHeight;
 
-            if (imgAspect > canvasAspect) { // Image wider than canvas aspect
+            if (imgAspect > canvasAspect) {
                 bgHeight = tempCanvas.height;
                 bgWidth = bgHeight * imgAspect;
-            } else { // Image taller or same aspect
+            } else {
                 bgWidth = tempCanvas.width;
                 bgHeight = bgWidth / imgAspect;
             }
 
-            // Calculate position based on normalized center (already calculated in draw())
             const drawnCenterX = imageX + drawnWidth / 2;
             const drawnCenterY = imageY + drawnHeight / 2;
             let normX = drawnCenterX / canvas.width;
@@ -352,56 +312,40 @@ function saveImage() {
             normX = Math.max(0, Math.min(1, normX));
             normY = Math.max(0, Math.min(1, normY));
 
-            // Calculate top-left offset based on percentage position
             const bgX = (tempCanvas.width - bgWidth) * normX;
             const bgY = (tempCanvas.height - bgHeight) * normY;
 
-            // Apply blur filter
             tempCtx.filter = `blur(${blurValue}px)`;
 
-            // Draw the original image scaled and positioned like the background
             tempCtx.drawImage(
                 currentImage,
-                bgX, bgY, // Position on temp canvas
-                bgWidth, bgHeight // Size on temp canvas
+                bgX, bgY,
+                bgWidth, bgHeight
             );
 
-            // Reset filter for the foreground
             tempCtx.filter = 'none';
-        } else {
-             // If no blur, maybe draw a solid color or leave transparent?
-             // Let's leave it transparent for simplicity. Or fill with a color:
-             // tempCtx.fillStyle = '#f0f0f0'; // Match body background
-             // tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
         }
 
-
-        // --- 2. Draw the Cropped Foreground Image ---
-        // Calculate source rect from original image based on current view
         const sourceX = -imageX / scale;
         const sourceY = -imageY / scale;
         const sourceWidth = canvas.width / scale;
         const sourceHeight = canvas.height / scale;
 
-        // Define destination rect on the temporary canvas (the whole canvas)
         const destX = 0;
         const destY = 0;
         const destWidth = tempCanvas.width;
         const destHeight = tempCanvas.height;
 
-         // Draw the calculated portion of the *original* image onto the temporary canvas
-         // This draws *over* the blurred background where the image exists
         tempCtx.drawImage(
             currentImage,
-            sourceX, sourceY, sourceWidth, sourceHeight, // Source rect (original image coords)
-            destX, destY, destWidth, destHeight        // Destination rect (temp canvas coords)
+            sourceX, sourceY, sourceWidth, sourceHeight,
+            destX, destY, destWidth, destHeight
         );
 
-        // --- 3. Generate and Trigger Download ---
         const dataUrl = tempCanvas.toDataURL('image/png');
         const link = document.createElement('a');
         link.href = dataUrl;
-        link.download = 'canvas-image.png'; // Filename
+        link.download = 'canvas-image.png';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -418,29 +362,23 @@ function saveImage() {
 
 saveButton.addEventListener('click', saveImage);
 
-
-// --- Controls Dragging ---
 const controlsPanel = document.querySelector('.controls');
 let isDraggingControls = false;
 let controlsStartX, controlsStartY;
 let controlsInitialLeft, controlsInitialTop;
 
 controlsPanel.addEventListener('mousedown', (e) => {
-	// Ignore right clicks
 	if (e.button !== 0) return;
 	
-	// Only start drag on the control panel itself, not on its children
 	if (e.target === controlsPanel || e.target.tagName === 'DIV' && e.target.parentNode === controlsPanel) {
 		isDraggingControls = true;
 		controlsStartX = e.clientX;
 		controlsStartY = e.clientY;
 		
-		// Calculate position as left/top instead of right/top for easier positioning
 		const rect = controlsPanel.getBoundingClientRect();
 		controlsInitialLeft = window.innerWidth - rect.right;
 		controlsInitialTop = rect.top;
 		
-		// Prevent text selection during drag
 		e.preventDefault();
 	}
 });
@@ -450,20 +388,16 @@ document.addEventListener('mousemove', (e) => {
 		const dx = e.clientX - controlsStartX;
 		const dy = e.clientY - controlsStartY;
 		
-		// Calculate new position
 		let newLeft = controlsInitialLeft - dx;
 		let newTop = controlsInitialTop + dy;
 		
-		// Get control panel dimensions
 		const rect = controlsPanel.getBoundingClientRect();
 		
-		// Constrain to window bounds
 		if (newLeft < 0) newLeft = 0;
 		if (newLeft > window.innerWidth - rect.width) newLeft = window.innerWidth - rect.width;
 		if (newTop < 0) newTop = 0;
 		if (newTop > window.innerHeight - rect.height) newTop = window.innerHeight - rect.height;
 		
-		// Apply the new position
 		controlsPanel.style.right = newLeft + 'px';
 		controlsPanel.style.left = 'auto';
 		controlsPanel.style.top = newTop + 'px';
@@ -474,7 +408,6 @@ document.addEventListener('mouseup', () => {
 	isDraggingControls = false;
 });
 
-// --- Initial Setup ---
 initializeCanvas();
 updateBlur();
 draw();
