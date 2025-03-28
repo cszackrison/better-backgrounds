@@ -562,32 +562,56 @@ let isDraggingControls = false;
 let controlsStartX, controlsStartY;
 let controlsInitialLeft, controlsInitialTop;
 
-controlsPanel.addEventListener('mousedown', (e) => {
-	if (e.button !== 0) return;
+// Handle both mouse and touch events for controls dragging
+function handleDragStart(e) {
+	// For mouse events
+	if (e.type === 'mousedown' && e.button !== 0) return;
 	
-	if (e.target === controlsPanel || e.target.tagName === 'DIV' && e.target.parentNode === controlsPanel) {
-		isDraggingControls = true;
-		controlsStartX = e.clientX;
-		controlsStartY = e.clientY;
-		
-		const rect = controlsPanel.getBoundingClientRect();
-		controlsInitialLeft = window.innerWidth - rect.right;
-		controlsInitialTop = rect.top;
-		
-		e.preventDefault();
+	// Check if clicked element is an interactive element or inside one
+	const target = e.target;
+	
+	// Don't start drag if target is or is inside an input, button, select, option, or label
+	if (target.tagName === 'INPUT' || 
+		target.tagName === 'BUTTON' || 
+		target.tagName === 'SELECT' || 
+		target.tagName === 'OPTION' ||
+		target.closest('button') ||
+		target.closest('input') ||
+		target.closest('select')) {
+		return;
 	}
-});
+	
+	isDraggingControls = true;
+	
+	// Get client coordinates for both mouse and touch events
+	const clientX = e.type === 'mousedown' ? e.clientX : e.touches[0].clientX;
+	const clientY = e.type === 'mousedown' ? e.clientY : e.touches[0].clientY;
+	
+	controlsStartX = clientX;
+	controlsStartY = clientY;
+	
+	const rect = controlsPanel.getBoundingClientRect();
+	controlsInitialLeft = window.innerWidth - rect.right;
+	controlsInitialTop = rect.top;
+	
+	e.preventDefault();
+}
 
-document.addEventListener('mousemove', (e) => {
+function handleDragMove(e) {
 	if (isDraggingControls) {
-		const dx = e.clientX - controlsStartX;
-		const dy = e.clientY - controlsStartY;
+		// Get client coordinates for both mouse and touch events
+		const clientX = e.type === 'mousemove' ? e.clientX : e.touches[0].clientX;
+		const clientY = e.type === 'mousemove' ? e.clientY : e.touches[0].clientY;
+		
+		const dx = clientX - controlsStartX;
+		const dy = clientY - controlsStartY;
 		
 		let newLeft = controlsInitialLeft - dx;
 		let newTop = controlsInitialTop + dy;
 		
 		const rect = controlsPanel.getBoundingClientRect();
 		
+		// Ensure the panel stays within viewport bounds
 		if (newLeft < 0) newLeft = 0;
 		if (newLeft > window.innerWidth - rect.width) newLeft = window.innerWidth - rect.width;
 		if (newTop < 0) newTop = 0;
@@ -597,11 +621,21 @@ document.addEventListener('mousemove', (e) => {
 		controlsPanel.style.left = 'auto';
 		controlsPanel.style.top = newTop + 'px';
 	}
-});
+}
 
-document.addEventListener('mouseup', () => {
+function handleDragEnd() {
 	isDraggingControls = false;
-});
+}
+
+// Mouse events
+controlsPanel.addEventListener('mousedown', handleDragStart);
+document.addEventListener('mousemove', handleDragMove);
+document.addEventListener('mouseup', handleDragEnd);
+
+// Touch events
+controlsPanel.addEventListener('touchstart', handleDragStart, { passive: false });
+document.addEventListener('touchmove', handleDragMove, { passive: false });
+document.addEventListener('touchend', handleDragEnd);
 
 // Add event listeners for alignment buttons
 document.querySelectorAll('.align-btn').forEach(button => {
