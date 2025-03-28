@@ -234,10 +234,19 @@ imageLoader.addEventListener('change', (event) => {
             blurScaleValueSpan.textContent = '100%';
             backgroundScale = 1;
             
-            // Get the active alignment or default to center
-            const activeBtn = document.querySelector('.align-btn.active');
-            const position = activeBtn ? activeBtn.dataset.align : 'center';
-            alignImage(position);
+            // Reset image scale and dimensions
+            scale = 1;
+            drawnWidth = 0;
+            drawnHeight = 0;
+            
+            // Reset to center alignment
+            document.querySelectorAll('.align-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            const centerBtn = document.querySelector('.align-btn[data-align="center"]');
+            if (centerBtn) centerBtn.classList.add('active');
+            
+            alignImage('center');
         };
         img.onerror = () => { alert('Failed to load image.'); currentImage = null; currentImageSrc = null; draw(); }
         img.src = currentImageSrc;
@@ -758,10 +767,19 @@ editorArea.addEventListener('drop', (e) => {
 					blurScaleValueSpan.textContent = '100%';
 					backgroundScale = 1;
 					
-					// Get the active alignment or default to center
-					const activeBtn = document.querySelector('.align-btn.active');
-					const position = activeBtn ? activeBtn.dataset.align : 'center';
-					alignImage(position);
+					// Reset image scale and dimensions
+					scale = 1;
+					drawnWidth = 0;
+					drawnHeight = 0;
+					
+					// Reset to center alignment
+					document.querySelectorAll('.align-btn').forEach(btn => {
+						btn.classList.remove('active');
+					});
+					const centerBtn = document.querySelector('.align-btn[data-align="center"]');
+					if (centerBtn) centerBtn.classList.add('active');
+					
+					alignImage('center');
 				};
 				img.onerror = () => { alert('Failed to load image.'); currentImage = null; currentImageSrc = null; draw(); }
 				img.src = currentImageSrc;
