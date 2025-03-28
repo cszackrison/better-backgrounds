@@ -87,6 +87,7 @@ h1 {
     border-bottom: 1px solid var(--border-color);
     display: flex;
     gap: 6px;
+    justify-content: space-between;
     margin-bottom: 8px;
     padding-bottom: 8px;
     width: 100%;
@@ -98,6 +99,7 @@ h1 {
 
 .controls-header h3 {
     color: var(--text-color);
+    flex: 1;
     font-size: 14px;
     font-weight: 600;
     margin: 0;
@@ -496,6 +498,57 @@ canvas {
     border: 1px solid var(--border-color);
     border-radius: 6px;
     padding: 8px;
+}
+
+/* Toggle controls button */
+.toggle-controls {
+    align-items: center;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: var(--btn-primary-bg);
+    cursor: pointer;
+    display: flex;
+    height: 24px;
+    justify-content: center;
+    margin-left: auto;
+    outline: none;
+    padding: 0;
+    transition: all 0.2s ease;
+    width: 24px;
+}
+
+.toggle-controls:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.toggle-controls:focus {
+    box-shadow: 0 0 0 2px var(--ring-color);
+}
+
+.toggle-icon {
+    transition: transform 0.3s ease;
+}
+
+.controls.collapsed .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.controls-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 80vh;
+	overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.2s ease, transform 0.2s ease;
+    width: 100%;
+}
+
+.controls.collapsed .controls-content {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transform: translateY(-10px);
 }
 
 /* Background blur now handled directly in canvas */

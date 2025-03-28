@@ -2,6 +2,7 @@ const imageLoader = document.getElementById('imageLoader');
 const canvas = document.getElementById('imageCanvas');
 const ctx = canvas.getContext('2d');
 const themeToggle = document.getElementById('themeToggle');
+const toggleControlsBtn = document.getElementById('toggleControls');
 // Background blur now handled directly in canvas
 
 // Scale controls
@@ -822,6 +823,28 @@ function initTheme() {
 }
 
 initTheme();
+
+// Controls panel toggle
+function toggleControlsPanel() {
+	const controlsPanel = document.querySelector('.controls');
+	controlsPanel.classList.toggle('collapsed');
+	
+	// Save preference to localStorage
+	const isCollapsed = controlsPanel.classList.contains('collapsed');
+	localStorage.setItem('controlsCollapsed', isCollapsed ? 'true' : 'false');
+}
+
+toggleControlsBtn.addEventListener('click', toggleControlsPanel);
+
+// Check for saved controls panel state
+function initControlsState() {
+	const savedState = localStorage.getItem('controlsCollapsed');
+	if (savedState === 'true') {
+		document.querySelector('.controls').classList.add('collapsed');
+	}
+}
+
+initControlsState();
 
 // Apply the default selected preset dimensions on page load
 function applySelectedPreset() {
