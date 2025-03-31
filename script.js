@@ -46,6 +46,11 @@ let activeHandle = null;
 // Determine handle size based on device - larger handles for mobile devices
 const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 const handleSize = isMobileDevice ? 24 : 16; // Larger handles on mobile
+
+// Variables for pinch-to-zoom functionality
+let initialPinchDistance = 0;
+let initialScale = 1;
+let isPinching = false;
 let startX, startY, resizeStartX, resizeStartY;
 let initialImageX, initialImageY, initialDrawnWidth, initialDrawnHeight;
 
@@ -53,6 +58,43 @@ let initialImageX, initialImageY, initialDrawnWidth, initialDrawnHeight;
 const showDebugUI = false;
 
 const snapThreshold = 10;
+
+// Create and show mobile instructions for pinch-to-zoom
+function showMobileInstructions() {
+    // Only show for mobile devices and if we have an image
+    if (!isMobileDevice || !currentImage) return;
+    
+    // Create the instruction element if it doesn't exist yet
+    let instructionEl = document.getElementById('mobile-instructions');
+    if (!instructionEl) {
+        instructionEl = document.createElement('div');
+        instructionEl.id = 'mobile-instructions';
+        instructionEl.innerHTML = 'Pinch with two fingers to zoom';
+        instructionEl.style.position = 'absolute';
+        instructionEl.style.bottom = '20px';
+        instructionEl.style.left = '50%';
+        instructionEl.style.transform = 'translateX(-50%)';
+        instructionEl.style.backgroundColor = 'rgba(0,0,0,0.7)';
+        instructionEl.style.color = 'white';
+        instructionEl.style.padding = '8px 12px';
+        instructionEl.style.borderRadius = '20px';
+        instructionEl.style.fontSize = '14px';
+        instructionEl.style.zIndex = '10';
+        instructionEl.style.transition = 'opacity 0.5s';
+        document.body.appendChild(instructionEl);
+        
+        // Hide the instruction after 5 seconds
+        setTimeout(() => {
+            instructionEl.style.opacity = '0';
+            // Remove it from the DOM after fade out
+            setTimeout(() => {
+                if (instructionEl.parentNode) {
+                    instructionEl.parentNode.removeChild(instructionEl);
+                }
+            }, 500);
+        }, 5000);
+    }
+}
 
 function initializeCanvas() {
     const width = parseInt(canvasWidthInput.value, 10);
@@ -79,6 +121,11 @@ function initializeCanvas() {
         } else {
             // First time loading, use regular alignment
             alignImage(position);
+        }
+        
+        // Show mobile instructions when an image is loaded
+        if (isMobileDevice) {
+            showMobileInstructions();
         }
     } else {
         draw();
@@ -312,6 +359,11 @@ imageLoader.addEventListener('change', (event) => {
             if (centerBtn) centerBtn.classList.add('active');
             
             alignImage('center');
+            
+            // Show mobile instructions when image is first loaded
+            if (isMobileDevice) {
+                showMobileInstructions();
+            }
         };
         img.onerror = () => { alert('Failed to load image.'); currentImage = null; currentImageSrc = null; draw(); }
         img.src = currentImageSrc;
@@ -431,11 +483,68 @@ function getHandleUnderMouse(pos) {
 	return null; 
 }
 
+// Calculate distance between two touch points
+function getTouchDistance(touches) {
+    if (touches.length < 2) return 0;
+    
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+// Get the center point between two touches
+function getTouchCenter(touches) {
+    if (touches.length < 2) return { x: 0, y: 0 };
+    
+    const centerX = (touches[0].clientX + touches[1].clientX) / 2;
+    const centerY = (touches[0].clientY + touches[1].clientY) / 2;
+    
+    const rect = canvas.getBoundingClientRect();
+    const canvasContainer = document.querySelector('.canvas-container');
+    const containerStyle = window.getComputedStyle(canvasContainer);
+    const transformValue = containerStyle.transform || containerStyle.webkitTransform;
+    
+    let scale = 1;
+    if (transformValue && transformValue !== 'none') {
+        const matrixValues = transformValue.match(/matrix.*\((.+)\)/);
+        if (matrixValues && matrixValues[1]) {
+            const values = matrixValues[1].split(', ');
+            if (values.length >= 4) {
+                scale = parseFloat(values[0]);
+            }
+        }
+    }
+    
+    return {
+        x: (centerX - rect.left) / scale,
+        y: (centerY - rect.top) / scale
+    };
+}
+
 // Handle both mouse and touch events for canvas interactions
 function handleCanvasStart(e) {
 	// Prevent default for touch events to avoid scrolling/zooming
 	if (e.type === 'touchstart') {
 		e.preventDefault();
+		
+		// Check for pinch gesture (two touch points)
+		if (e.touches.length === 2 && currentImage) {
+		    isPinching = true;
+		    isDragging = false;
+		    isResizing = false;
+		    initialPinchDistance = getTouchDistance(e.touches);
+		    initialScale = scale;
+		    
+		    // Save center point and initial image state for scaling around center
+		    const center = getTouchCenter(e.touches);
+		    resizeStartX = center.x;
+		    resizeStartY = center.y;
+		    initialImageX = imageX;
+		    initialImageY = imageY;
+		    initialDrawnWidth = drawnWidth;
+		    initialDrawnHeight = drawnHeight;
+		    return;
+		}
 	}
 	
 	// Get mouse/touch position
@@ -451,6 +560,7 @@ function handleCanvasStart(e) {
 	if (activeHandle) {
 		isResizing = true;
 		isDragging = false;
+		isPinching = false;
 		canvas.style.cursor = (activeHandle === 'tl' || activeHandle === 'br') ? 'nwse-resize' : 'nesw-resize';
 		resizeStartX = pos.x;
 		resizeStartY = pos.y;
@@ -468,6 +578,7 @@ function handleCanvasStart(e) {
 			
 			isDragging = true;
 			isResizing = false;
+			isPinching = false;
 			
 			// Calculate the offset from the mouse/touch position to the image origin
 			startX = pos.x - imageX;
@@ -494,7 +605,53 @@ function handleCanvasMove(e) {
     
     if (!currentImage) return;
     
-    // Get position for both mouse and touch events
+    // Handle pinch-to-zoom gesture on mobile
+    if (e.type === 'touchmove' && e.touches.length === 2 && isPinching) {
+        const currentDistance = getTouchDistance(e.touches);
+        const pinchRatio = currentDistance / initialPinchDistance;
+        
+        // Get the center point of the pinch
+        const center = getTouchCenter(e.touches);
+        
+        // Calculate new scale based on pinch ratio
+        const newScale = Math.max(
+            parseFloat(imageScaleInput.min) / 100,
+            Math.min(parseFloat(imageScaleInput.max) / 100, initialScale * pinchRatio)
+        );
+        
+        // Calculate new dimensions while maintaining aspect ratio
+        const newWidth = currentImage.naturalWidth * newScale;
+        const newHeight = currentImage.naturalHeight * newScale;
+        
+        // Calculate position adjustment to scale around pinch center point
+        const centerToOriginX = center.x - initialImageX;
+        const centerToOriginY = center.y - initialImageY;
+        const centerToOriginRatioX = centerToOriginX / initialDrawnWidth;
+        const centerToOriginRatioY = centerToOriginY / initialDrawnHeight;
+        
+        // Update dimensions
+        drawnWidth = newWidth;
+        drawnHeight = newHeight;
+        scale = newScale;
+        
+        // Update position to maintain the pinch center point
+        imageX = center.x - (drawnWidth * centerToOriginRatioX);
+        imageY = center.y - (drawnHeight * centerToOriginRatioY);
+        
+        // Update the UI slider to reflect the new scale
+        const scalePercent = Math.round(scale * 100);
+        const clampedScale = Math.max(
+            parseInt(imageScaleInput.min),
+            Math.min(parseInt(imageScaleInput.max), scalePercent)
+        );
+        imageScaleInput.value = clampedScale;
+        imageScaleValueSpan.textContent = `${clampedScale}%`;
+        
+        draw();
+        return;
+    }
+    
+    // Get position for both mouse and touch events (for single touch/mouse)
     const pos = e.type === 'mousemove' ? getMousePos(e) : getMousePos(e.touches[0]);
     
     // Store the position for debug visualization
@@ -649,13 +806,31 @@ function handleCanvasEnd(e) {
 	// Check if this is a touchend event with touches still ongoing
 	// This can happen when multiple fingers are used
 	if (e.type === 'touchend' && e.touches && e.touches.length > 0) {
-		// If there are still active touches, don't end the interaction
+		// If one finger is lifted during a pinch, but another remains
+		if (isPinching && e.touches.length === 1) {
+			// End pinch and start dragging with the remaining finger
+			const pos = getMousePos(e.touches[0]);
+			isPinching = false;
+			
+			// Check if the remaining touch is on the image
+			if (pos.x >= imageX && 
+				pos.x <= imageX + drawnWidth && 
+				pos.y >= imageY && 
+				pos.y <= imageY + drawnHeight) {
+				
+				isDragging = true;
+				startX = pos.x - imageX;
+				startY = pos.y - imageY;
+			}
+		}
 		return;
 	}
 	
-	if (isDragging || isResizing) { 
+	// End all interactions
+	if (isDragging || isResizing || isPinching) { 
 		isDragging = false; 
 		isResizing = false; 
+		isPinching = false;
 		activeHandle = null; 
 		canvas.classList.remove('grabbing'); 
 		
@@ -688,9 +863,10 @@ function handleCanvasEnd(e) {
 
 // Handle mouse/touch leaving canvas or being canceled
 function handleCanvasLeave(e) {
-	if (isDragging || isResizing) { 
+	if (isDragging || isResizing || isPinching) { 
 		isDragging = false; 
 		isResizing = false; 
+		isPinching = false;
 		activeHandle = null; 
 		canvas.classList.remove('grabbing'); 
 	}
