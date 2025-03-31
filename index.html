@@ -6,6 +6,7 @@
     <meta name="description" content="Create beautiful backgrounds with blur effects and precise controls">
     <meta name="keywords" content="background generator, image editor, blur effect">
     <meta name="author" content="Better Backgrounds">
+    <meta name="theme-color" content="#333333">
     
     <!-- Open Graph / Social Media -->
     <meta property="og:title" content="Better Backgrounds">
@@ -19,10 +20,25 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
     
+    <!-- iOS specific PWA meta tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Better Backgrounds">
+    
     <title>Better Backgrounds</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="splash-screen.css">
 </head>
 <body>
+    <!-- Splash Screen for PWA -->
+    <div class="splash-screen">
+        <img src="/android-chrome-512x512.png" alt="Better Backgrounds" class="splash-logo">
+        <div class="splash-title">Better Backgrounds</div>
+        <div class="splash-loader">
+            <div class="splash-loader-bar"></div>
+        </div>
+    </div>
+    
 	<h1>Better Backgrounds</h1>
     <div class="theme-toggle-container">
         <button id="resetControlsPos" aria-label="Reset controls position" title="Reset controls position">
@@ -176,5 +192,58 @@
     </div>
 
     <script src="script.js"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        // Handle splash screen
+        document.addEventListener('DOMContentLoaded', () => {
+            const splashScreen = document.querySelector('.splash-screen');
+            const loaderBar = document.querySelector('.splash-loader-bar');
+            
+            // Animate loader
+            setTimeout(() => { loaderBar.style.width = '30%'; }, 200);
+            setTimeout(() => { loaderBar.style.width = '60%'; }, 600);
+            setTimeout(() => { loaderBar.style.width = '80%'; }, 1000);
+            setTimeout(() => { loaderBar.style.width = '100%'; }, 1400);
+            
+            // Hide splash screen after loading completes
+            setTimeout(() => {
+                if (splashScreen) {
+                    splashScreen.classList.add('fade-out');
+                    
+                    // Remove from DOM after animation
+                    setTimeout(() => {
+                        if (splashScreen.parentNode) {
+                            splashScreen.parentNode.removeChild(splashScreen);
+                        }
+                    }, 500);
+                }
+            }, 1800);
+        });
+        
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
+        
+        // Check if launched from installed PWA
+        const isInStandaloneMode = () => 
+            (window.matchMedia('(display-mode: standalone)').matches) || 
+            (window.navigator.standalone) || 
+            document.referrer.includes('android-app://');
+        
+        if (isInStandaloneMode()) {
+            console.log('App is running as installed PWA');
+            // Could add PWA-specific behaviors here
+        }
+    </script>
 </body>
 </html>

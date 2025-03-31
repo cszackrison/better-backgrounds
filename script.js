@@ -59,6 +59,9 @@ const showDebugUI = false;
 
 const snapThreshold = 10;
 
+// Offline status detection
+let isOnline = navigator.onLine;
+
 // Create and show mobile instructions for pinch-to-zoom
 function showMobileInstructions() {
     // Only show for mobile devices and if we have an image
@@ -1344,6 +1347,47 @@ function applySelectedPreset() {
 		}
 	}
 }
+
+// Offline status handling
+window.addEventListener('online', () => {
+    isOnline = true;
+    console.log('Application is online');
+});
+
+window.addEventListener('offline', () => {
+    isOnline = false;
+    console.log('Application is offline');
+    
+    // Show offline notification (optional)
+    const offlineNotice = document.createElement('div');
+    offlineNotice.id = 'offline-notice';
+    offlineNotice.style.position = 'fixed';
+    offlineNotice.style.bottom = '20px';
+    offlineNotice.style.left = '20px';
+    offlineNotice.style.backgroundColor = 'rgba(0,0,0,0.7)';
+    offlineNotice.style.color = 'white';
+    offlineNotice.style.padding = '8px 16px';
+    offlineNotice.style.borderRadius = '4px';
+    offlineNotice.style.zIndex = '9999';
+    offlineNotice.style.fontSize = '14px';
+    offlineNotice.textContent = 'You are currently offline. The app will continue to work.';
+    
+    document.body.appendChild(offlineNotice);
+    
+    // Remove the notice after 5 seconds
+    setTimeout(() => {
+        if (offlineNotice.parentNode) {
+            offlineNotice.parentNode.removeChild(offlineNotice);
+        }
+    }, 5000);
+});
+
+// Handle file loading in offline mode
+imageLoader.addEventListener('error', (event) => {
+    if (!isOnline) {
+        alert('Unable to load this file while offline. Please try again when you have an internet connection.');
+    }
+});
 
 // Apply selected preset before initializing canvas
 applySelectedPreset();
