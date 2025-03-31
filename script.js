@@ -103,14 +103,15 @@ function alignImage(position = 'center') {
         // Calculate image size while maintaining aspect ratio
         const canvasAspect = canvas.width / canvas.height;
         const imageAspect = currentImage.naturalWidth / currentImage.naturalHeight;
-        const margin = 0.9;
 
+        // If image is wider than the canvas (landscape), make it fill the width
         if (imageAspect > canvasAspect) {
-            drawnWidth = canvas.width * margin;
+            drawnWidth = canvas.width;
             scale = drawnWidth / currentImage.naturalWidth;
             drawnHeight = currentImage.naturalHeight * scale;
         } else {
-            drawnHeight = canvas.height * margin;
+            // For portrait/taller images, make it fill the height
+            drawnHeight = canvas.height;
             scale = drawnHeight / currentImage.naturalHeight;
             drawnWidth = currentImage.naturalWidth * scale;
         }
