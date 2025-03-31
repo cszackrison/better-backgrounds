@@ -195,16 +195,36 @@
     
     <!-- Service Worker Registration -->
     <script>
-        // Handle splash screen
+        // Check if launched from installed PWA
+        const isInStandaloneMode = () => 
+            (window.matchMedia('(display-mode: standalone)').matches) || 
+            (window.navigator.standalone) || 
+            document.referrer.includes('android-app://');
+            
+        // Handle splash screen - only show when launched as PWA
         document.addEventListener('DOMContentLoaded', () => {
             const splashScreen = document.querySelector('.splash-screen');
-            const loaderBar = document.querySelector('.splash-loader-bar');
             
-            // Animate loader
-            setTimeout(() => { loaderBar.style.width = '30%'; }, 200);
-            setTimeout(() => { loaderBar.style.width = '60%'; }, 600);
-            setTimeout(() => { loaderBar.style.width = '80%'; }, 1000);
-            setTimeout(() => { loaderBar.style.width = '100%'; }, 1400);
+            // Only show splash screen in standalone/PWA mode
+            if (!isInStandaloneMode()) {
+                if (splashScreen && splashScreen.parentNode) {
+                    splashScreen.parentNode.removeChild(splashScreen);
+                }
+                return;
+            } else if (splashScreen) {
+                // Show the splash screen for PWA mode
+                splashScreen.style.display = 'flex';
+            }
+            
+            // Only show animation in PWA mode
+            const loaderBar = document.querySelector('.splash-loader-bar');
+            if (loaderBar) {
+                // Animate loader
+                setTimeout(() => { loaderBar.style.width = '30%'; }, 200);
+                setTimeout(() => { loaderBar.style.width = '60%'; }, 600);
+                setTimeout(() => { loaderBar.style.width = '80%'; }, 1000);
+                setTimeout(() => { loaderBar.style.width = '100%'; }, 1400);
+            }
             
             // Hide splash screen after loading completes
             setTimeout(() => {
@@ -234,12 +254,7 @@
             });
         }
         
-        // Check if launched from installed PWA
-        const isInStandaloneMode = () => 
-            (window.matchMedia('(display-mode: standalone)').matches) || 
-            (window.navigator.standalone) || 
-            document.referrer.includes('android-app://');
-        
+        // We already defined isInStandaloneMode() above
         if (isInStandaloneMode()) {
             console.log('App is running as installed PWA');
             // Could add PWA-specific behaviors here

@@ -12,6 +12,8 @@
     background-color: var(--bg-color);
     z-index: 10000;
     transition: opacity 0.5s ease-out;
+    /* Hide by default in browser mode, script will remove if not in PWA mode */
+    display: none;
 }
 
 .splash-screen.fade-out {
