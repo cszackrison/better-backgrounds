@@ -618,6 +618,11 @@ canvas {
     position: relative;
     z-index: 2;
     margin: 0 auto; /* Center horizontally */
+    /* Add properties for better mobile handling */
+    touch-action: none; /* Prevent browser handling touch events */
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10+ */
+    user-select: none; /* Standard syntax */
 }
 
 #imageCanvas.grabbing {

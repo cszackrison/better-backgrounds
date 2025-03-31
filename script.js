@@ -43,7 +43,9 @@ let currentImageSrc = null;
 
 let isDragging = false, isResizing = false;
 let activeHandle = null;
-const handleSize = 16;
+// Determine handle size based on device - larger handles for mobile devices
+const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+const handleSize = isMobileDevice ? 24 : 16; // Larger handles on mobile
 let startX, startY, resizeStartX, resizeStartY;
 let initialImageX, initialImageY, initialDrawnWidth, initialDrawnHeight;
 
@@ -397,17 +399,26 @@ function getMousePos(event) {
 		}
 	}
 	
+	// Get clientX and clientY, whether from mouse event or touch event
+	const clientX = event.clientX !== undefined ? event.clientX : event.touches ? event.touches[0].clientX : 0;
+	const clientY = event.clientY !== undefined ? event.clientY : event.touches ? event.touches[0].clientY : 0;
+	
 	// Adjust coordinates based on the scale
 	return { 
-		x: (event.clientX - rect.left) / scale, 
-		y: (event.clientY - rect.top) / scale 
+		x: (clientX - rect.left) / scale, 
+		y: (clientY - rect.top) / scale 
 	}; 
 }
 
 function getHandleUnderMouse(pos) { 
 	if (!currentImage) return null; 
 	const handles = getHandlePositions(); 
-	const tolerance = handleSize * 2; // Increased tolerance for easier handle grabbing
+	
+	// Use a larger tolerance for touch events for easier handle grabbing on mobile
+	// We can detect if it's likely a touch event by checking the User Agent
+	const isTouchDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+	const tolerance = isTouchDevice ? handleSize * 3 : handleSize * 2;
+	
 	for (const corner in handles) { 
 		const handlePos = handles[corner]; 
 		if (pos.x >= handlePos.x - tolerance / 2 && 
@@ -420,62 +431,83 @@ function getHandleUnderMouse(pos) {
 	return null; 
 }
 
-canvas.addEventListener('mousedown', (e) => { 
-	const mousePos = getMousePos(e); 
+// Handle both mouse and touch events for canvas interactions
+function handleCanvasStart(e) {
+	// Prevent default for touch events to avoid scrolling/zooming
+	if (e.type === 'touchstart') {
+		e.preventDefault();
+	}
+	
+	// Get mouse/touch position
+	const pos = e.type === 'mousedown' ? getMousePos(e) : getMousePos(e.touches[0]);
 	
 	if (!currentImage) {
-		// If no image is loaded, clicking on canvas opens the file upload dialog
+		// If no image is loaded, clicking/tapping on canvas opens the file upload dialog
 		imageLoader.click();
 		return;
 	}
 	
-	activeHandle = getHandleUnderMouse(mousePos); 
-	if (activeHandle) { 
-		isResizing = true; 
-		isDragging = false; 
-		canvas.style.cursor = (activeHandle === 'tl' || activeHandle === 'br') ? 'nwse-resize' : 'nesw-resize'; 
-		resizeStartX = mousePos.x; 
-		resizeStartY = mousePos.y; 
-		initialImageX = imageX; 
-		initialImageY = imageY; 
-		initialDrawnWidth = drawnWidth; 
-		initialDrawnHeight = drawnHeight; 
-	} else { 
-		// Check if mouse is inside the image
+	activeHandle = getHandleUnderMouse(pos);
+	if (activeHandle) {
+		isResizing = true;
+		isDragging = false;
+		canvas.style.cursor = (activeHandle === 'tl' || activeHandle === 'br') ? 'nwse-resize' : 'nesw-resize';
+		resizeStartX = pos.x;
+		resizeStartY = pos.y;
+		initialImageX = imageX;
+		initialImageY = imageY;
+		initialDrawnWidth = drawnWidth;
+		initialDrawnHeight = drawnHeight;
+	} else {
+		// Check if mouse/touch is inside the image
 		// Use exact values (not rounded) for more precise hit detection
-		if (mousePos.x >= imageX && 
-			mousePos.x <= imageX + drawnWidth && 
-			mousePos.y >= imageY && 
-			mousePos.y <= imageY + drawnHeight) {
+		if (pos.x >= imageX &&
+			pos.x <= imageX + drawnWidth &&
+			pos.y >= imageY &&
+			pos.y <= imageY + drawnHeight) {
 			
-			isDragging = true; 
-			isResizing = false; 
+			isDragging = true;
+			isResizing = false;
 			
-			// Calculate the offset from the mouse position to the image origin
-			startX = mousePos.x - imageX; 
-			startY = mousePos.y - imageY; 
+			// Calculate the offset from the mouse/touch position to the image origin
+			startX = pos.x - imageX;
+			startY = pos.y - imageY;
 			
-			canvas.classList.add('grabbing'); 
-			canvas.style.cursor = 'grabbing'; 
+			canvas.classList.add('grabbing');
+			canvas.style.cursor = 'grabbing';
 		}
-	} 
-});
+	}
+}
 
-canvas.addEventListener('mousemove', (e) => {
+// Mouse event
+canvas.addEventListener('mousedown', handleCanvasStart);
+
+// Touch event
+canvas.addEventListener('touchstart', handleCanvasStart, { passive: false });
+
+// Handle both mouse and touch events for canvas movement
+function handleCanvasMove(e) {
+    // Prevent default for touch events to stop scrolling
+    if (e.type === 'touchmove') {
+        e.preventDefault();
+    }
+    
     if (!currentImage) return;
-    const mousePos = getMousePos(e);
     
-    // Store the mouse position for debug visualization
-    lastMousePos = mousePos;
+    // Get position for both mouse and touch events
+    const pos = e.type === 'mousemove' ? getMousePos(e) : getMousePos(e.touches[0]);
     
-    // Redraw with updated mouse position indicator if we're in debug mode
+    // Store the position for debug visualization
+    lastMousePos = pos;
+    
+    // Redraw with updated position indicator if we're in debug mode
     if (showDebugUI && !isDragging && !isResizing) {
         draw();
     }
 
     if (isResizing && activeHandle) {
-        const dx = mousePos.x - resizeStartX;
-        const dy = mousePos.y - resizeStartY;
+        const dx = pos.x - resizeStartX;
+        const dy = pos.y - resizeStartY;
         const aspect = currentImage.naturalWidth / currentImage.naturalHeight;
 
         let rawWidth = initialDrawnWidth;
@@ -577,8 +609,8 @@ canvas.addEventListener('mousemove', (e) => {
 
         draw();
     } else if (isDragging) {
-        let targetX = mousePos.x - startX;
-        let targetY = mousePos.y - startY;
+        let targetX = pos.x - startX;
+        let targetY = pos.y - startY;
         if (Math.abs(targetX) < snapThreshold) targetX = 0;
         if (Math.abs((targetX + drawnWidth) - canvas.width) < snapThreshold) targetX = canvas.width - drawnWidth;
         if (Math.abs(targetY) < snapThreshold) targetY = 0;
@@ -586,50 +618,96 @@ canvas.addEventListener('mousemove', (e) => {
         imageX = targetX; imageY = targetY;
         draw();
     } else {
-        const handle = getHandleUnderMouse(mousePos); 
-        if (handle) { 
-            canvas.style.cursor = (handle === 'tl' || handle === 'br') ? 'nwse-resize' : 'nesw-resize'; 
-        } else {
-            // Use exact values (not rounded) for more precise hit detection
-            if (mousePos.x >= imageX && 
-                mousePos.x <= imageX + drawnWidth && 
-                mousePos.y >= imageY && 
-                mousePos.y <= imageY + drawnHeight) { 
-                canvas.style.cursor = 'grab'; 
-            } else { 
-                canvas.style.cursor = 'default'; 
+        // Only check for cursor changes on mousemove, not touchmove
+        if (e.type === 'mousemove') {
+            const handle = getHandleUnderMouse(pos); 
+            if (handle) { 
+                canvas.style.cursor = (handle === 'tl' || handle === 'br') ? 'nwse-resize' : 'nesw-resize'; 
+            } else {
+                // Use exact values (not rounded) for more precise hit detection
+                if (pos.x >= imageX && 
+                    pos.x <= imageX + drawnWidth && 
+                    pos.y >= imageY && 
+                    pos.y <= imageY + drawnHeight) { 
+                    canvas.style.cursor = 'grab'; 
+                } else { 
+                    canvas.style.cursor = 'default'; 
+                }
             }
         }
     }
-});
+}
 
-canvas.addEventListener('mouseup', (e) => { 
+// Mouse event
+canvas.addEventListener('mousemove', handleCanvasMove);
+
+// Touch event - set passive: false to be able to preventDefault
+canvas.addEventListener('touchmove', handleCanvasMove, { passive: false });
+
+// Handle end of interaction (mouseup or touchend)
+function handleCanvasEnd(e) {
+	// Check if this is a touchend event with touches still ongoing
+	// This can happen when multiple fingers are used
+	if (e.type === 'touchend' && e.touches && e.touches.length > 0) {
+		// If there are still active touches, don't end the interaction
+		return;
+	}
+	
 	if (isDragging || isResizing) { 
 		isDragging = false; 
 		isResizing = false; 
 		activeHandle = null; 
 		canvas.classList.remove('grabbing'); 
 		
-		const currentMousePos = getMousePos(e); 
-		const hoverHandle = getHandleUnderMouse(currentMousePos); 
-		
-		if (hoverHandle) { 
-			canvas.style.cursor = (hoverHandle === 'tl' || hoverHandle === 'br') ? 'nwse-resize' : 'nesw-resize'; 
-		} else {
-			// Use exact values (not rounded) for more precise hit detection
-			if (currentMousePos.x >= imageX && 
-				currentMousePos.x <= imageX + drawnWidth && 
-				currentMousePos.y >= imageY && 
-				currentMousePos.y <= imageY + drawnHeight) { 
-				canvas.style.cursor = 'grab'; 
-			} else { 
-				canvas.style.cursor = 'default'; 
+		// For mouse events, update the cursor based on position
+		if (e.type === 'mouseup') {
+			const currentPos = getMousePos(e);
+			const hoverHandle = getHandleUnderMouse(currentPos); 
+			
+			if (hoverHandle) { 
+				canvas.style.cursor = (hoverHandle === 'tl' || hoverHandle === 'br') ? 'nwse-resize' : 'nesw-resize'; 
+			} else {
+				// Use exact values (not rounded) for more precise hit detection
+				if (currentPos.x >= imageX && 
+					currentPos.x <= imageX + drawnWidth && 
+					currentPos.y >= imageY && 
+					currentPos.y <= imageY + drawnHeight) { 
+					canvas.style.cursor = 'grab'; 
+				} else { 
+					canvas.style.cursor = 'default'; 
+				}
 			}
-		} 
+		}
+		
+		// For touch events, ensure we draw one last time to finalize any operations
+		if (e.type === 'touchend') {
+			draw();
+		}
 	} 
-});
+}
 
-canvas.addEventListener('mouseleave', () => { if (isDragging || isResizing) { isDragging = false; isResizing = false; activeHandle = null; canvas.classList.remove('grabbing'); } canvas.style.cursor = 'default'; });
+// Handle mouse/touch leaving canvas or being canceled
+function handleCanvasLeave(e) {
+	if (isDragging || isResizing) { 
+		isDragging = false; 
+		isResizing = false; 
+		activeHandle = null; 
+		canvas.classList.remove('grabbing'); 
+	}
+	
+	// Only update cursor for mouse events
+	if (e.type !== 'touchcancel' && e.type !== 'touchleave') {
+		canvas.style.cursor = 'default';
+	}
+}
+
+// Mouse events
+canvas.addEventListener('mouseup', handleCanvasEnd);
+canvas.addEventListener('mouseleave', handleCanvasLeave);
+
+// Touch events
+canvas.addEventListener('touchend', handleCanvasEnd);
+canvas.addEventListener('touchcancel', handleCanvasLeave);
 
 function saveImage() {
     if (!currentImage) {
