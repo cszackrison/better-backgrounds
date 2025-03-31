@@ -43,9 +43,12 @@ let currentImageSrc = null;
 
 let isDragging = false, isResizing = false;
 let activeHandle = null;
-const handleSize = 10;
+const handleSize = 16;
 let startX, startY, resizeStartX, resizeStartY;
 let initialImageX, initialImageY, initialDrawnWidth, initialDrawnHeight;
+
+// Show a visualization of the hit area for debugging purposes
+const showDebugUI = false;
 
 const snapThreshold = 10;
 
@@ -195,19 +198,77 @@ function draw() {
     }
 }
 
+// For debugging - store the last mouse position
+let lastMousePos = { x: 0, y: 0 };
+
 function drawHandles() {
     if (!currentImage) return;
+    
+    // Draw image bounds for debugging - helps visualize the actual hit area
+    if (showDebugUI) {
+        ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(imageX, imageY, drawnWidth, drawnHeight);
+    }
+    
+    // Indicate if the mouse is within the bounds for debugging
+    if (showDebugUI) {
+        if (lastMousePos.x >= imageX && 
+            lastMousePos.x <= imageX + drawnWidth && 
+            lastMousePos.y >= imageY && 
+            lastMousePos.y <= imageY + drawnHeight) {
+            // Mouse is inside
+            ctx.strokeStyle = 'rgba(0, 255, 0, 1)';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(imageX, imageY, drawnWidth, drawnHeight);
+        }
+        
+        // Draw the mouse position
+        ctx.fillStyle = 'rgba(255, 255, 0, 0.7)';
+        ctx.beginPath();
+        ctx.arc(lastMousePos.x, lastMousePos.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    // Draw resize handles
     const halfHandle = handleSize / 2;
-    ctx.fillStyle = 'rgba(0, 123, 255, 0.8)';
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.lineWidth = 1;
+    ctx.fillStyle = 'rgba(0, 123, 255, 0.85)';  // Slightly more opaque blue
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 2;  // Thicker border
     const handles = getHandlePositions();
     for (const corner in handles) {
         const pos = handles[corner];
         const drawX = Math.max(halfHandle, Math.min(canvas.width - halfHandle, pos.x));
         const drawY = Math.max(halfHandle, Math.min(canvas.height - halfHandle, pos.y));
-        ctx.fillRect(drawX - halfHandle, drawY - halfHandle, handleSize, handleSize);
-        ctx.strokeRect(drawX - halfHandle, drawY - halfHandle, handleSize, handleSize);
+        
+        // Draw handle with rounded corners or fallback to regular rectangle
+        ctx.beginPath();
+        if (ctx.roundRect) {
+            // Use roundRect if supported
+            ctx.roundRect(drawX - halfHandle, drawY - halfHandle, handleSize, handleSize, 4);
+        } else {
+            // Fallback for browsers that don't support roundRect
+            ctx.rect(drawX - halfHandle, drawY - halfHandle, handleSize, handleSize);
+        }
+        ctx.fill();
+        ctx.stroke();
+        
+        // Add a visual indicator inside the handle to show direction
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        
+        if (corner === 'tl' || corner === 'br') {
+            // Diagonal line for top-left and bottom-right
+            ctx.moveTo(drawX - halfHandle + 5, drawY - halfHandle + 5);
+            ctx.lineTo(drawX + halfHandle - 5, drawY + halfHandle - 5);
+        } else {
+            // Diagonal line for top-right and bottom-left
+            ctx.moveTo(drawX + halfHandle - 5, drawY - halfHandle + 5);
+            ctx.lineTo(drawX - halfHandle + 5, drawY + halfHandle - 5);
+        }
+        
+        ctx.stroke();
     }
 }
 
@@ -315,9 +376,49 @@ sizePresetSelect.addEventListener('change', (event) => {
     if (newWidth >= 50 && newHeight >= 50) { canvasWidthInput.value = newWidth; canvasHeightInput.value = newHeight; initializeCanvas(); } else { console.warn("Preset resulted in invalid dimensions."); event.target.value = ""; }
 });
 
-function getMousePos(event) { const rect = canvas.getBoundingClientRect(); return { x: event.clientX - rect.left, y: event.clientY - rect.top }; }
+function getMousePos(event) { 
+	const rect = canvas.getBoundingClientRect(); 
+	
+	// Get the scale of the canvas container (in case it's been scaled in the UI)
+	const canvasContainer = document.querySelector('.canvas-container');
+	const containerStyle = window.getComputedStyle(canvasContainer);
+	const transformValue = containerStyle.transform || containerStyle.webkitTransform;
+	
+	let scale = 1;
+	if (transformValue && transformValue !== 'none') {
+		// Parse the transform matrix to get the scale value
+		const matrixValues = transformValue.match(/matrix.*\((.+)\)/);
+		if (matrixValues && matrixValues[1]) {
+			const values = matrixValues[1].split(', ');
+			// Get the scale from the matrix (assuming uniform x/y scaling)
+			if (values.length >= 4) {
+				scale = parseFloat(values[0]);
+			}
+		}
+	}
+	
+	// Adjust coordinates based on the scale
+	return { 
+		x: (event.clientX - rect.left) / scale, 
+		y: (event.clientY - rect.top) / scale 
+	}; 
+}
 
-function getHandleUnderMouse(pos) { if (!currentImage) return null; const handles = getHandlePositions(); const tolerance = handleSize * 1.5; for (const corner in handles) { const handlePos = handles[corner]; if ( pos.x >= handlePos.x - tolerance / 2 && pos.x <= handlePos.x + tolerance / 2 && pos.y >= handlePos.y - tolerance / 2 && pos.y <= handlePos.y + tolerance / 2 ) { return corner; } } return null; }
+function getHandleUnderMouse(pos) { 
+	if (!currentImage) return null; 
+	const handles = getHandlePositions(); 
+	const tolerance = handleSize * 2; // Increased tolerance for easier handle grabbing
+	for (const corner in handles) { 
+		const handlePos = handles[corner]; 
+		if (pos.x >= handlePos.x - tolerance / 2 && 
+			pos.x <= handlePos.x + tolerance / 2 && 
+			pos.y >= handlePos.y - tolerance / 2 && 
+			pos.y <= handlePos.y + tolerance / 2) { 
+			return corner; 
+		} 
+	} 
+	return null; 
+}
 
 canvas.addEventListener('mousedown', (e) => { 
 	const mousePos = getMousePos(e); 
@@ -340,20 +441,37 @@ canvas.addEventListener('mousedown', (e) => {
 		initialDrawnWidth = drawnWidth; 
 		initialDrawnHeight = drawnHeight; 
 	} else { 
-		if (mousePos.x >= imageX && mousePos.x <= imageX + drawnWidth && mousePos.y >= imageY && mousePos.y <= imageY + drawnHeight) { 
+		// Check if mouse is inside the image
+		// Use exact values (not rounded) for more precise hit detection
+		if (mousePos.x >= imageX && 
+			mousePos.x <= imageX + drawnWidth && 
+			mousePos.y >= imageY && 
+			mousePos.y <= imageY + drawnHeight) {
+			
 			isDragging = true; 
 			isResizing = false; 
+			
+			// Calculate the offset from the mouse position to the image origin
 			startX = mousePos.x - imageX; 
 			startY = mousePos.y - imageY; 
+			
 			canvas.classList.add('grabbing'); 
 			canvas.style.cursor = 'grabbing'; 
-		} 
+		}
 	} 
 });
 
 canvas.addEventListener('mousemove', (e) => {
     if (!currentImage) return;
     const mousePos = getMousePos(e);
+    
+    // Store the mouse position for debug visualization
+    lastMousePos = mousePos;
+    
+    // Redraw with updated mouse position indicator if we're in debug mode
+    if (showDebugUI && !isDragging && !isResizing) {
+        draw();
+    }
 
     if (isResizing && activeHandle) {
         const dx = mousePos.x - resizeStartX;
@@ -468,11 +586,48 @@ canvas.addEventListener('mousemove', (e) => {
         imageX = targetX; imageY = targetY;
         draw();
     } else {
-        const handle = getHandleUnderMouse(mousePos); if (handle) { canvas.style.cursor = (handle === 'tl' || handle === 'br') ? 'nwse-resize' : 'nesw-resize'; } else if (mousePos.x >= imageX && mousePos.x <= imageX + drawnWidth && mousePos.y >= imageY && mousePos.y <= imageY + drawnHeight) { canvas.style.cursor = 'grab'; } else { canvas.style.cursor = 'default'; }
+        const handle = getHandleUnderMouse(mousePos); 
+        if (handle) { 
+            canvas.style.cursor = (handle === 'tl' || handle === 'br') ? 'nwse-resize' : 'nesw-resize'; 
+        } else {
+            // Use exact values (not rounded) for more precise hit detection
+            if (mousePos.x >= imageX && 
+                mousePos.x <= imageX + drawnWidth && 
+                mousePos.y >= imageY && 
+                mousePos.y <= imageY + drawnHeight) { 
+                canvas.style.cursor = 'grab'; 
+            } else { 
+                canvas.style.cursor = 'default'; 
+            }
+        }
     }
 });
 
-canvas.addEventListener('mouseup', (e) => { if (isDragging || isResizing) { isDragging = false; isResizing = false; activeHandle = null; canvas.classList.remove('grabbing'); const currentMousePos = getMousePos(e); const hoverHandle = getHandleUnderMouse(currentMousePos); if (hoverHandle) { canvas.style.cursor = (hoverHandle === 'tl' || hoverHandle === 'br') ? 'nwse-resize' : 'nesw-resize'; } else if (currentMousePos.x >= imageX && currentMousePos.x <= imageX + drawnWidth && currentMousePos.y >= imageY && currentMousePos.y <= imageY + drawnHeight) { canvas.style.cursor = 'grab'; } else { canvas.style.cursor = 'default'; } } });
+canvas.addEventListener('mouseup', (e) => { 
+	if (isDragging || isResizing) { 
+		isDragging = false; 
+		isResizing = false; 
+		activeHandle = null; 
+		canvas.classList.remove('grabbing'); 
+		
+		const currentMousePos = getMousePos(e); 
+		const hoverHandle = getHandleUnderMouse(currentMousePos); 
+		
+		if (hoverHandle) { 
+			canvas.style.cursor = (hoverHandle === 'tl' || hoverHandle === 'br') ? 'nwse-resize' : 'nesw-resize'; 
+		} else {
+			// Use exact values (not rounded) for more precise hit detection
+			if (currentMousePos.x >= imageX && 
+				currentMousePos.x <= imageX + drawnWidth && 
+				currentMousePos.y >= imageY && 
+				currentMousePos.y <= imageY + drawnHeight) { 
+				canvas.style.cursor = 'grab'; 
+			} else { 
+				canvas.style.cursor = 'default'; 
+			}
+		} 
+	} 
+});
 
 canvas.addEventListener('mouseleave', () => { if (isDragging || isResizing) { isDragging = false; isResizing = false; activeHandle = null; canvas.classList.remove('grabbing'); } canvas.style.cursor = 'default'; });
 
