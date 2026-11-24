@@ -12,13 +12,13 @@
     <meta property="og:title" content="Better Backgrounds">
     <meta property="og:description" content="Create beautiful backgrounds with blur effects and precise controls">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="/android-chrome-512x512.png">
+    <meta property="og:image" content="android-chrome-512x512.png">
     
     <!-- Favicon / App Icons -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="manifest" href="site.webmanifest">
     
     <!-- iOS specific PWA meta tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -32,7 +32,7 @@
 <body>
     <!-- Splash Screen for PWA -->
     <div class="splash-screen">
-        <img src="/android-chrome-512x512.png" alt="Better Backgrounds" class="splash-logo">
+        <img src="android-chrome-512x512.png" alt="Better Backgrounds" class="splash-logo">
         <div class="splash-title">Better Backgrounds</div>
         <div class="splash-loader">
             <div class="splash-loader-bar"></div>
@@ -66,45 +66,79 @@
              <label for="sizePreset">Preset Size</label>
              <select id="sizePreset">
                 <option value="">-- Select Preset --</option>
-                <option value="aspect_16_9">16:9 Aspect Ratio</option>
-                <option value="aspect_9_16">9:16 Aspect Ratio (Portrait)</option>
-                <option value="aspect_4_3">4:3 Aspect Ratio</option>
-                <option value="aspect_1_1">1:1 Aspect Ratio (Square)</option>
-                <option value="separator" disabled>--- Common Resolutions ---</option>
-                <option value="1920x1080" selected>1080p (1920×1080)</option>
-                <option value="2560x1440">1440p (2560×1440)</option>
-                <option value="3840x2160">4K UHD (3840×2160)</option>
-                <option value="1920x1200">WUXGA (1920×1200)</option>
-                <option value="2560x1600">WQXGA (2560×1600)</option>
-                <option value="3440x1440">Ultrawide (3440×1440)</option>
-                <option value="5120x1440">Super Ultrawide (5120×1440)</option>
-                <option value="separator" disabled>--- Desktop Monitors ---</option>
-                <option value="1366x768">HD Ready (1366×768)</option>
-                <option value="2560x1080">Ultrawide HD (2560×1080)</option>
-                <option value="3840x1600">Ultrawide 4K (3840×1600)</option>
-                <option value="7680x4320">8K UHD (7680×4320)</option>
-                <option value="separator" disabled>--- Mobile Devices (High Res) ---</option>
-                <option value="1125x2436">iPhone X/XS/11 Pro (1125×2436)</option>
-                <option value="1170x2532">iPhone 12/13/14 Pro (1170×2532)</option>
-                <option value="1179x2556">iPhone 15/15 Pro (1179×2556)</option>
-                <option value="1284x2778">iPhone Pro Max (1284×2778)</option>
-                <option value="1440x3120">Samsung Galaxy S21/S22/S23 Ultra (1440×3120)</option>
-                <option value="1344x2992">Google Pixel Pro/XL (1344×2992)</option>
-                <option value="1080x2400">OnePlus 9 (1080×2400)</option>
+                <optgroup label="Aspect Ratios">
+                    <option value="aspect_16_9">16:9 Aspect Ratio</option>
+                    <option value="aspect_9_16">9:16 Aspect Ratio (Portrait)</option>
+                    <option value="aspect_4_3">4:3 Aspect Ratio</option>
+                    <option value="aspect_1_1">1:1 Aspect Ratio (Square)</option>
+                </optgroup>
+                <optgroup label="Monitors">
+                    <option value="1920x1080" selected>1080p (1920×1080)</option>
+                    <option value="2560x1440">1440p (2560×1440)</option>
+                    <option value="3840x2160">4K UHD (3840×2160)</option>
+                    <option value="5120x2880">5K (5120×2880)</option>
+                    <option value="7680x4320">8K UHD (7680×4320)</option>
+                    <option value="1920x1200">WUXGA 16:10 (1920×1200)</option>
+                    <option value="2560x1600">WQXGA 16:10 (2560×1600)</option>
+                    <option value="2560x1080">Ultrawide 1080p (2560×1080)</option>
+                    <option value="3440x1440">Ultrawide 1440p (3440×1440)</option>
+                    <option value="3840x1600">Ultrawide 4K (3840×1600)</option>
+                    <option value="5120x2160">Ultrawide 5K2K (5120×2160)</option>
+                    <option value="5120x1440">Super Ultrawide (5120×1440)</option>
+                </optgroup>
+                <optgroup label="Laptops &amp; Desktops">
+                    <option value="2560x1664">MacBook Air 13" (2560×1664)</option>
+                    <option value="2880x1864">MacBook Air 15" (2880×1864)</option>
+                    <option value="3024x1964">MacBook Pro 14" (3024×1964)</option>
+                    <option value="3456x2234">MacBook Pro 16" (3456×2234)</option>
+                    <option value="4480x2520">iMac 24" (4480×2520)</option>
+                    <option value="6016x3384">Pro Display XDR (6016×3384)</option>
+                    <option value="2880x1920">Surface Pro 13" (2880×1920)</option>
+                    <option value="2304x1536">Surface Laptop 13.8" (2304×1536)</option>
+                </optgroup>
+                <optgroup label="iPhone">
+                    <option value="1320x2868">iPhone 17 Pro Max / 16 Pro Max (1320×2868)</option>
+                    <option value="1260x2736">iPhone Air (1260×2736)</option>
+                    <option value="1206x2622">iPhone 17 / 17 Pro / 16 Pro (1206×2622)</option>
+                    <option value="1290x2796">iPhone 16 Plus / 15 Plus (1290×2796)</option>
+                    <option value="1179x2556">iPhone 16 / 15 / 15 Pro (1179×2556)</option>
+                    <option value="1170x2532">iPhone 16e / 14 / 13 (1170×2532)</option>
+                </optgroup>
+                <optgroup label="Android Phones">
+                    <option value="1440x3120">Galaxy S26 Ultra / S26+ / S25 Ultra (1440×3120)</option>
+                    <option value="1080x2340">Galaxy S26 / S25 (1080×2340)</option>
+                    <option value="1344x2992">Pixel 10 Pro XL / 9 Pro XL (1344×2992)</option>
+                    <option value="1280x2856">Pixel 10 Pro / 9 Pro (1280×2856)</option>
+                    <option value="1080x2424">Pixel 10 / 9 (1080×2424)</option>
+                    <option value="1440x3168">OnePlus 13 (1440×3168)</option>
+                </optgroup>
+                <optgroup label="Foldables">
+                    <option value="1968x2184">Galaxy Z Fold7 – Inner (1968×2184)</option>
+                    <option value="1080x2520">Galaxy Z Fold7 Cover / Z Flip7 (1080×2520)</option>
+                    <option value="2076x2152">Pixel 10 Pro Fold – Inner (2076×2152)</option>
+                </optgroup>
+                <optgroup label="Tablets">
+                    <option value="2064x2752">iPad Pro 13" M4/M5 (2064×2752)</option>
+                    <option value="1668x2420">iPad Pro 11" M4/M5 (1668×2420)</option>
+                    <option value="2048x2732">iPad Air 13" (2048×2732)</option>
+                    <option value="1640x2360">iPad Air 11" / iPad A16 (1640×2360)</option>
+                    <option value="1488x2266">iPad mini A17 Pro (1488×2266)</option>
+                    <option value="1848x2960">Galaxy Tab S11 Ultra / S10 Ultra (1848×2960)</option>
+                </optgroup>
              </select>
         </div>
         <div class="control-group dimensions">
             <div class="dimension-input">
                 <label for="canvasWidth">Width</label>
                 <div class="input-with-unit">
-                    <input type="number" id="canvasWidth" value="1920" min="50">
+                    <input type="number" id="canvasWidth" value="1920" min="50" max="16384">
                     <span class="unit">px</span>
                 </div>
             </div>
             <div class="dimension-input">
                 <label for="canvasHeight">Height</label>
                 <div class="input-with-unit">
-                    <input type="number" id="canvasHeight" value="1080" min="50">
+                    <input type="number" id="canvasHeight" value="1080" min="50" max="16384">
                     <span class="unit">px</span>
                 </div>
             </div>
@@ -244,7 +278,7 @@
         // Register service worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
+                navigator.serviceWorker.register('sw.js')
                     .then(registration => {
                         console.log('ServiceWorker registration successful with scope: ', registration.scope);
                     })

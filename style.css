@@ -444,7 +444,7 @@ h1:after {
     width: 100%;
 }
 
-.align-btn {
+.controls .align-btn {
     align-items: center;
     background-color: var(--input-bg);
     border: 1px solid var(--input-border);
@@ -464,17 +464,17 @@ h1:after {
 	pointer-events: none;
 }
 
-.align-btn:hover {
+.controls .align-btn:hover {
     background-color: var(--input-hover-border);
     border-color: var(--input-hover-border);
 }
 
-.align-btn:focus {
+.controls .align-btn:focus {
     box-shadow: 0 0 0 2px var(--ring-color);
     outline: none;
 }
 
-.align-btn.active {
+.controls .align-btn.active {
     background-color: var(--btn-primary-bg);
     border-color: var(--btn-primary-bg);
     color: white;
@@ -536,7 +536,7 @@ canvas {
 }
 
 /* Toggle controls button */
-.toggle-controls {
+.controls .toggle-controls {
     align-items: center;
     background: transparent;
     border: none;
@@ -553,11 +553,11 @@ canvas {
     width: 24px;
 }
 
-.toggle-controls:hover {
+.controls .toggle-controls:hover {
     background-color: rgba(0, 0, 0, 0.05);
 }
 
-.toggle-controls:focus {
+.controls .toggle-controls:focus {
     box-shadow: 0 0 0 2px var(--ring-color);
 }
 
@@ -582,6 +582,7 @@ canvas {
     scrollbar-color: var(--input-border) transparent;
     /* Add padding to prevent content from being hidden behind scrollbar */
     padding-right: 5px;
+    touch-action: pan-y; /* Allow scrolling the panel on touch devices */
 }
 
 /* Webkit scrollbar styling (Chrome, Safari, Edge) */
