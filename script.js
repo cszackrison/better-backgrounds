@@ -12,7 +12,6 @@ const blurScaleValueSpan = document.getElementById('blurScaleValue');
 const canvasWidthInput = document.getElementById('canvasWidth');
 const canvasHeightInput = document.getElementById('canvasHeight');
 const saveButton = document.getElementById('saveButton');
-const canvasContainer = document.querySelector('.canvas-container');
 const controlsPanel = document.querySelector('.controls');
 const editorArea = document.querySelector('.editor-area');
 const blurAmountInput = document.getElementById('blurAmount');
@@ -325,8 +324,6 @@ function initializeCanvas() {
 
 	canvas.width = width;
 	canvas.height = height;
-	canvasContainer.style.width = `${width}px`;
-	canvasContainer.style.height = `${height}px`;
 
 	if (currentImage && drawnWidth > 0 && drawnHeight > 0) {
 		const alignment = getActiveAlignment();
@@ -342,7 +339,7 @@ function initializeCanvas() {
 	}
 
 	// Update responsive scaling before drawing so handles are sized for the new display scale
-	scaleCanvasContainer();
+	fitCanvasToViewport();
 	draw();
 }
 
@@ -1042,31 +1039,30 @@ fitHeightBtn.addEventListener('click', fitImageHeight);
 
 // ---------- Responsive canvas scaling ----------
 
-function scaleCanvasContainer() {
-	const maxViewportWidth = window.innerWidth * 0.85;
-	const maxViewportHeight = window.innerHeight * 0.75;
+// Size the canvas element's on-screen box to fit the viewport. The pixel buffer keeps its full
+// resolution; the browser scales it for display. Nothing overflows its container, so the canvas
+// stays centered regardless of how a browser aligns overflowing flex items (Safari differs here).
+function fitCanvasToViewport() {
+	const style = window.getComputedStyle(canvas);
+	const frameX = (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0) +
+		(parseFloat(style.borderLeftWidth) || 0) + (parseFloat(style.borderRightWidth) || 0);
+	const frameY = (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0) +
+		(parseFloat(style.borderTopWidth) || 0) + (parseFloat(style.borderBottomWidth) || 0);
 
-	// Include the canvas padding/border so the whole frame fits on screen
-	const frameWidth = canvas.offsetWidth || canvas.width;
-	const frameHeight = canvas.offsetHeight || canvas.height;
+	// Stay inside both the viewport budget and the editor area's limits (90vw/80vh minus its 20px padding)
+	const editorPadding = 40;
+	const maxWidth = Math.min(window.innerWidth * 0.85, window.innerWidth * 0.9 - editorPadding) - frameX;
+	const maxHeight = Math.min(window.innerHeight * 0.75, window.innerHeight * 0.8 - editorPadding) - frameY;
 
-	const newScale = Math.min(1, maxViewportWidth / frameWidth, maxViewportHeight / frameHeight);
+	const newScale = Math.max(0.01, Math.min(1, maxWidth / canvas.width, maxHeight / canvas.height));
 
-	if (newScale < 1) {
-		const scaledWidth = canvas.width * newScale;
-		const scaledHeight = canvas.height * newScale;
-		canvasContainer.style.transform = `scale(${newScale})`;
-		canvasContainer.style.margin = `${(canvas.height - scaledHeight) / 2}px ${(canvas.width - scaledWidth) / 2}px`;
-	} else {
-		canvasContainer.style.transform = 'none';
-		canvasContainer.style.margin = '0';
-	}
-
+	canvas.style.width = `${canvas.width * newScale}px`;
+	canvas.style.height = `${canvas.height * newScale}px`;
 	displayScale = newScale;
 }
 
 function handleWindowResize() {
-	scaleCanvasContainer();
+	fitCanvasToViewport();
 	// Handle sizes depend on the display scale
 	draw();
 }

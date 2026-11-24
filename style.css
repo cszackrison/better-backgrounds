@@ -54,6 +54,7 @@ body {
     justify-content: center;
     margin: 0;
     min-height: 100vh;
+    min-height: 100dvh; /* Visible viewport on mobile browsers with collapsing toolbars */
     overflow: hidden; /* Prevent scrollbars */
     padding: 0;
     position: relative;
@@ -520,8 +521,6 @@ h1:after {
     max-width: 90vw;
     overflow: visible;
     position: relative;
-    transform-origin: center;
-    transition: all 0.2s ease;
     z-index: 2;
 }
 
@@ -614,6 +613,7 @@ canvas {
 /* Background blur now handled directly in canvas */
 
 #imageCanvas {
+    box-sizing: content-box; /* Inline width/height set by script.js is the drawing area only */
     cursor: grab;
     display: block;
     position: relative;
